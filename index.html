@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curated Mood Palette & Hotel Art Poster</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Montserrat', 'Shippori Mincho', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+    </style>
+</head>
+<body class="bg-stone-950 text-stone-200 min-h-screen flex flex-col antialiased selection:bg-stone-700 selection:text-white">
+
+    <!-- ヘッダー：ミニマルで洗練された印象に -->
+    <header class="bg-stone-950/90 backdrop-blur-md border-b border-stone-800 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-9 h-9 rounded-full border border-stone-700 flex items-center justify-center text-stone-300">
+                    <i class="fa-solid fa-feather text-xs"></i>
+                </div>
+                <div>
+                    <h1 class="font-cinzel tracking-[0.25em] text-xs sm:text-sm font-medium text-stone-100">HOTEL GALLERY EDITION</h1>
+                    <p class="text-[10px] tracking-widest text-stone-400">CURATED INTERIOR ART & PALETTE</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-light text-stone-400 bg-stone-900 px-4 py-2 rounded-full border border-stone-800">
+                <i class="fa-solid fa-circle-dot text-[8px] text-stone-400"></i>
+                <span>カラーをタップしてHEXをコピー</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 lg:px-12 py-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        
+        <!-- コントロールパネル (左側 5カラム) -->
+        <section class="lg:col-span-5 space-y-6">
+            
+            <!-- 1. 気分選択 (ホテルの空間美を意識した命名と配色) -->
+            <div class="bg-stone-900/60 backdrop-blur-sm p-6 rounded-2xl border border-stone-800 shadow-2xl space-y-4">
+                <h2 class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 01. Atmosphere & Tone
+                </h2>
+                <div class="grid grid-cols-2 gap-3" id="mood-selector">
+                    <button data-mood="calm" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-600 bg-stone-800/80 text-stone-100 text-xs tracking-wider transition-all shadow-sm">
+                        <span class="flex items-center gap-2 font-medium">静寂・コンクリート (Calm)</span>
+                        <i class="fa-solid fa-check text-stone-300 text-xs check-icon"></i>
+                    </button>
+                    <button data-mood="energetic" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all">
+                        <span class="flex items-center gap-2 font-medium">モダン・テラコッタ (Vivid)</span>
+                        <i class="fa-solid fa-check text-stone-600 text-xs check-icon hidden"></i>
+                    </button>
+                    <button data-mood="luxury" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all">
+                        <span class="flex items-center gap-2 font-medium">真鍮・ダークオーク (Luxury)</span>
+                        <i class="fa-solid fa-check text-stone-600 text-xs check-icon hidden"></i>
+                    </button>
+                    <button data-mood="natural" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all">
+                        <span class="flex items-center gap-2 font-medium">白木・リネン (Earth)</span>
+                        <i class="fa-solid fa-check text-stone-600 text-xs check-icon hidden"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. カラーパレット表示リスト -->
+            <div class="bg-stone-900/60 backdrop-blur-sm p-6 rounded-2xl border border-stone-800 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 02. Curated Swatches
+                    </h2>
+                    <button id="btn-shuffle-palette" class="text-xs text-stone-300 hover:text-white tracking-wider font-light flex items-center gap-2 bg-stone-800 hover:bg-stone-700 px-3.5 py-1.5 rounded-lg transition-colors border border-stone-700">
+                        <i class="fa-solid fa-rotate text-[10px]"></i> バリエーション変更
+                    </button>
+                </div>
+                
+                <div id="palette-list" class="space-y-2.5"></div>
+            </div>
+
+            <!-- 3. 形状＆個別カスタマイズ -->
+            <div class="bg-stone-900/60 backdrop-blur-sm p-6 rounded-2xl border border-stone-800 shadow-2xl space-y-5">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 03. Composition & Shapes
+                    </h2>
+                    <label class="flex items-center gap-2 text-xs text-stone-400 font-light cursor-pointer">
+                        <input type="checkbox" id="show-red-outline" checked class="rounded accent-stone-500 bg-stone-950 border-stone-700">
+                        赤点線ガイド表示
+                    </label>
+                </div>
+
+                <!-- 全体スケール -->
+                <div class="space-y-2 bg-stone-950/50 p-3.5 rounded-xl border border-stone-800">
+                    <div class="flex justify-between items-center text-xs">
+                        <label for="shape-scale" class="font-medium text-stone-300 tracking-wider">全体のバランス倍率</label>
+                        <span id="scale-value" class="font-mono text-stone-400 bg-stone-900 px-2 py-0.5 rounded border border-stone-800">1.0x</span>
+                    </div>
+                    <input type="range" id="shape-scale" min="0.5" max="1.6" step="0.1" value="1.0" class="w-full accent-stone-400 cursor-pointer">
+                </div>
+
+                <!-- 各パーツ設定 -->
+                <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1" id="sub-shape-controls"></div>
+
+                <!-- ポスターテキスト変更 -->
+                <div class="space-y-2 pt-3 border-t border-stone-800">
+                    <label for="poster-title" class="text-xs font-medium text-stone-400 tracking-wider">ギャラリータイトル（英字推奨）</label>
+                    <input type="text" id="poster-title" value="AESTHETIC SILENCE" class="w-full px-3.5 py-2.5 bg-stone-950 border border-stone-800 rounded-xl text-xs text-stone-100 tracking-widest focus:outline-none focus:ring-1 focus:ring-stone-600 focus:border-stone-600 font-cinzel">
+                </div>
+            </div>
+        </section>
+
+        <!-- Canvas＆プレビュー表示 (右側 7カラム) -->
+        <section class="lg:col-span-7 flex flex-col items-center">
+            <div class="w-full bg-stone-900/60 backdrop-blur-sm p-6 lg:p-8 rounded-2xl border border-stone-800 shadow-2xl flex flex-col items-center space-y-5">
+                
+                <div class="w-full flex items-center justify-between">
+                    <span class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-image text-stone-400"></i> Gallery Frame Preview
+                    </span>
+                    <button id="btn-download" class="text-xs bg-stone-100 hover:bg-white text-stone-950 font-medium tracking-widest px-5 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> 高解像度保存 (PNG)
+                    </button>
+                </div>
+
+                <!-- Canvas コンテナ：額縁のような重厚な背景 -->
+                <div class="w-full flex justify-center items-center bg-[#0a0a0a] p-6 lg:p-8 rounded-2xl border border-stone-800/80 overflow-hidden shadow-2xl relative">
+                    <div class="absolute inset-2 border border-stone-800/40 pointer-events-none rounded-xl"></div>
+                    <canvas id="posterCanvas" class="max-w-full h-auto rounded shadow-2xl cursor-crosshair" width="800" height="1131"></canvas>
+                </div>
+
+                <p class="text-[11px] text-stone-400 text-center tracking-wider font-light">
+                    ホテルや建築ギャラリーのエントランスに飾られる、洗練された大理石・ニュアンスカラーのポスターです。図形をクリックして位置・大きさを調整できます。
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- コピートースト通知 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-stone-900 border border-stone-700 text-stone-200 text-xs tracking-wider px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50">
+        <i class="fa-solid fa-check text-stone-300 text-sm"></i>
+        <span id="toast-message">カラーコードをコピーしました</span>
+    </div>
+
+    <!-- JavaScript ロジック -->
+    <script>
+        const PALETTE_DATA = {
+            calm: [
+                {
+                    name: "Architectural Concrete",
+                    colors: [
+                        { hex: "#1C1C1E", name: "Deep Charcoal" },
+                        { hex: "#3A3A3C", name: "Raw Concrete" },
+                        { hex: "#636366", name: "Muted Lead" },
+                        { hex: "#AEAEB2", name: "Silver Haze" },
+                        { hex: "#F2F2F7", name: "Plaster White" }
+                    ]
+                },
+                {
+                    name: "Nordic Fjord",
+                    colors: [
+                        { hex: "#11161A", name: "Abyss Dark" },
+                        { hex: "#232D36", name: "Fjord Slate" },
+                        { hex: "#485A6A", name: "Nordic Steel" },
+                        { hex: "#95A5B3", name: "Glacial Fog" },
+                        { hex: "#F4F6F8", name: "Clean Snow" }
+                    ]
+                }
+            ],
+            energetic: [
+                {
+                    name: "Modern Terracotta",
+                    colors: [
+                        { hex: "#1A1512", name: "Espresso Black" },
+                        { hex: "#8C4A32", name: "Burnt Sienna" },
+                        { hex: "#C28E61", name: "Warm Ochre" },
+                        { hex: "#D6C7B2", name: "Sandstone" },
+                        { hex: "#FAF7F2", name: "Warm Alabaster" }
+                    ]
+                },
+                {
+                    name: "Warm Clay",
+                    colors: [
+                        { hex: "#221A16", name: "Rich Umber" },
+                        { hex: "#A35C44", name: "Raw Clay" },
+                        { hex: "#D9A066", name: "Desert Sun" },
+                        { hex: "#E8E1D5", name: "Ecru Linen" },
+                        { hex: "#FFFFFF", name: "Pure Canvas" }
+                    ]
+                }
+            ],
+            luxury: [
+                {
+                    name: "Brass & Noir",
+                    colors: [
+                        { hex: "#0D0D0D", name: "Midnight Obsidian" },
+                        { hex: "#262626", name: "Dark Graphite" },
+                        { hex: "#C49A45", name: "Antique Brass" },
+                        { hex: "#D9D2C3", name: "Champagne Silk" },
+                        { hex: "#F7F5F0", name: "Ivory Paper" }
+                    ]
+                },
+                {
+                    name: "Dark Velvet",
+                    colors: [
+                        { hex: "#0A0D0F", name: "Deep Void" },
+                        { hex: "#17212B", name: "Inky Navy" },
+                        { hex: "#B89753", name: "Muted Gold" },
+                        { hex: "#8A99A8", name: "Steel Grey" },
+                        { hex: "#F5F6F8", name: "Clean Pearl" }
+                    ]
+                }
+            ],
+            natural: [
+                {
+                    name: "Wabi-Sabi Wood",
+                    colors: [
+                        { hex: "#1A1917", name: "Charred Wood" },
+                        { hex: "#423E37", name: "Raw Walnut" },
+                        { hex: "#8C8275", name: "Stonewash" },
+                        { hex: "#D9D4CB", name: "Natural Hemp" },
+                        { hex: "#F7F5F0", name: "Rice Paper" }
+                    ]
+                },
+                {
+                    name: "Zen Garden",
+                    colors: [
+                        { hex: "#161A17", name: "Deep Moss" },
+                        { hex: "#354038", name: "Forest Pine" },
+                        { hex: "#8C968E", name: "Sage Haze" },
+                        { hex: "#E3E5E2", name: "River Stone" },
+                        { hex: "#FAFAFA", name: "Morning Mist" }
+                    ]
+                }
+            ]
+        };
+
+        const state = {
+            mood: 'calm',
+            paletteIndex: 0,
+            scale: 1.0,
+            showRedOutline: true,
+            title: 'AESTHETIC SILENCE',
+            selectedIndex: 0,
+            shapeLayers: [
+                { type: 'double-circle', size: 1.1, offsetX: -20, offsetY: 20 },
+                { type: 'arch', size: 0.95, offsetX: 50, offsetY: -50 },
+                { type: 'rect', size: 0.7, offsetX: -80, offsetY: -70 },
+                { type: 'triangle', size: 0.8, offsetX: 70, offsetY: 80 }
+            ]
+        };
+
+        const moodButtons = document.querySelectorAll('.mood-btn');
+        const paletteListContainer = document.getElementById('palette-list');
+        const shapeScaleInput = document.getElementById('shape-scale');
+        const scaleValueDisplay = document.getElementById('scale-value');
+        const posterTitleInput = document.getElementById('poster-title');
+        const btnShufflePalette = document.getElementById('btn-shuffle-palette');
+        const btnDownload = document.getElementById('btn-download');
+        const canvas = document.getElementById('posterCanvas');
+        const ctx = canvas.getContext('2d');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const subShapeControls = document.getElementById('sub-shape-controls');
+        const showRedOutlineCheck = document.getElementById('show-red-outline');
+
+        function init() {
+            bindEvents();
+            renderSubShapeControls();
+            renderPaletteList();
+            drawPoster();
+        }
+
+        function getCurrentColors() {
+            const moodPalettes = PALETTE_DATA[state.mood];
+            return moodPalettes[state.paletteIndex % moodPalettes.length].colors;
+        }
+
+        function renderPaletteList() {
+            const colors = getCurrentColors();
+            paletteListContainer.innerHTML = '';
+
+            colors.forEach((color) => {
+                const item = document.createElement('div');
+                item.className = 'group relative flex items-center justify-between p-3 rounded-xl border border-stone-800 hover:border-stone-600 bg-stone-950/60 hover:bg-stone-900 transition-all cursor-pointer';
+                item.setAttribute('title', 'タップしてカラーコードをコピー');
+                
+                item.innerHTML = `
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-8 h-8 rounded-lg shadow-inner border border-white/10 flex-shrink-0 transition-transform group-hover:scale-105" style="background-color: ${color.hex}"></div>
+                        <div>
+                            <p class="text-xs font-medium text-stone-200 tracking-wide">${color.name}</p>
+                            <p class="text-[11px] font-mono text-stone-400 tracking-wider">${color.hex}</p>
+                        </div>
+                    </div>
+                    <button class="text-xs text-stone-400 group-hover:text-stone-200 font-light px-3 py-1.5 rounded-md group-hover:bg-stone-800 transition-colors flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy text-[10px]"></i>
+                        <span class="text-[11px]">コピー</span>
+                    </button>
+                `;
+
+                item.addEventListener('click', () => copyToClipboard(color.hex));
+                paletteListContainer.appendChild(item);
+            });
+        }
+
+        function renderSubShapeControls() {
+            subShapeControls.innerHTML = '';
+
+            const shapeTypes = [
+                { id: 'double-circle', label: '二重丸' },
+                { id: 'arch', label: 'アーチ' },
+                { id: 'triangle', label: '三角' },
+                { id: 'rect', label: '四角' },
+                { id: 'wave', label: '波形' }
+            ];
+
+            state.shapeLayers.forEach((layer, idx) => {
+                const isSelected = (state.selectedIndex === idx);
+                const wrapper = document.createElement('div');
+                wrapper.className = `p-3.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'border-stone-500 bg-stone-800/60 shadow-lg' : 'border-stone-800 bg-stone-950/40 hover:border-stone-700'}`;
+                
+                let typeButtonsHtml = '';
+                shapeTypes.forEach(st => {
+                    const active = layer.type === st.id;
+                    typeButtonsHtml += `<button type="button" data-idx="${idx}" data-shape-type="${st.id}" class="layer-type-btn px-2 py-1 rounded-md text-[10px] tracking-wider transition-all ${active ? 'bg-stone-200 text-stone-950 font-medium shadow' : 'text-stone-400 hover:text-stone-200'}">${st.label}</button>`;
+                });
+
+                wrapper.innerHTML = `
+                    <div class="flex items-center justify-between mb-2.5">
+                        <span class="font-medium text-xs ${isSelected ? 'text-stone-100' : 'text-stone-300'} flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-stone-300 ring-2 ring-stone-600' : 'bg-stone-700'}"></span>
+                            レイヤー #${idx + 1} ${isSelected ? '(選択中)' : ''}
+                        </span>
+                        <div class="flex flex-wrap gap-1 bg-stone-900 p-0.5 rounded-lg border border-stone-800">
+                            ${typeButtonsHtml}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2.5 text-[11px]">
+                        <div class="space-y-1">
+                            <label class="text-stone-400 font-light">サイズ</label>
+                            <input type="range" min="0.3" max="2.0" step="0.05" value="${layer.size}" data-idx="${idx}" data-type="size" class="param-input w-full accent-stone-400 cursor-pointer">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-stone-400 font-light">X座標</label>
+                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetX}" data-idx="${idx}" data-type="offsetX" class="param-input w-full accent-stone-400 cursor-pointer">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-stone-400 font-light">Y座標</label>
+                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetY}" data-idx="${idx}" data-type="offsetY" class="param-input w-full accent-stone-400 cursor-pointer">
+                        </div>
+                    </div>
+                `;
+
+                wrapper.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT' && !e.target.classList.contains('layer-type-btn')) {
+                        state.selectedIndex = idx;
+                        renderSubShapeControls();
+                        drawPoster();
+                    }
+                });
+
+                subShapeControls.appendChild(wrapper);
+            });
+
+            document.querySelectorAll('.layer-type-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const idx = parseInt(btn.dataset.idx);
+                    const shapeType = btn.dataset.shapeType;
+                    state.selectedIndex = idx;
+                    state.shapeLayers[idx].type = shapeType;
+                    renderSubShapeControls();
+                    drawPoster();
+                });
+            });
+
+            document.querySelectorAll('.param-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    const type = e.target.dataset.type;
+                    const val = parseFloat(e.target.value);
+                    
+                    state.selectedIndex = idx;
+                    state.shapeLayers[idx][type] = val;
+                    drawPoster();
+                });
+            });
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => showToast(`カラーコード ${text} をコピーしました`));
+            } else {
+                execCopyCommand(text);
+            }
+        }
+
+        function execCopyCommand(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`カラーコード ${text} をコピーしました`);
+            } catch (err) {}
+            document.body.removeChild(textArea);
+        }
+
+        let toastTimeout;
+        function showToast(msg) {
+            toastMessage.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        function bindEvents() {
+            moodButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    moodButtons.forEach(b => {
+                        b.className = 'mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all';
+                        b.querySelector('.check-icon').classList.add('hidden');
+                    });
+                    btn.className = 'mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-600 bg-stone-800/80 text-stone-100 text-xs tracking-wider transition-all shadow-sm';
+                    btn.querySelector('.check-icon').classList.remove('hidden');
+
+                    state.mood = btn.getAttribute('data-mood');
+                    state.paletteIndex = 0;
+                    renderPaletteList();
+                    drawPoster();
+                });
+            });
+
+            btnShufflePalette.addEventListener('click', () => {
+                const max = PALETTE_DATA[state.mood].length;
+                state.paletteIndex = (state.paletteIndex + 1) % max;
+                renderPaletteList();
+                drawPoster();
+            });
+
+            shapeScaleInput.addEventListener('input', (e) => {
+                state.scale = parseFloat(e.target.value);
+                scaleValueDisplay.textContent = `${state.scale.toFixed(1)}x`;
+                drawPoster();
+            });
+
+            showRedOutlineCheck.addEventListener('change', (e) => {
+                state.showRedOutline = e.target.checked;
+                drawPoster();
+            });
+
+            posterTitleInput.addEventListener('input', (e) => {
+                state.title = e.target.value.toUpperCase() || 'HOTEL GALLERY';
+                drawPoster();
+            });
+
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clickX = (e.clientX - rect.left) * scaleX;
+                const clickY = (e.clientY - rect.top) * scaleY;
+
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2 - 50;
+                const baseSize = 220 * state.scale;
+
+                let clickedIdx = -1;
+
+                state.shapeLayers.forEach((layer, idx) => {
+                    const lx = centerX + layer.offsetX * state.scale;
+                    const ly = centerY + layer.offsetY * state.scale;
+                    const r = baseSize * layer.size;
+                    const dist = Math.hypot(clickX - lx, clickY - ly);
+                    if (dist < r + 25) {
+                        clickedIdx = idx;
+                    }
+                });
+
+                if (clickedIdx !== -1) {
+                    state.selectedIndex = clickedIdx;
+                    renderSubShapeControls();
+                    drawPoster();
+                }
+            });
+
+            btnDownload.addEventListener('click', () => {
+                const tempOutline = state.showRedOutline;
+                state.showRedOutline = false;
+                drawPoster();
+
+                const link = document.createElement('a');
+                link.download = `hotel-gallery-poster-${state.mood}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                state.showRedOutline = tempOutline;
+                drawPoster();
+            });
+        }
+
+        // ホテルギャラリー風ポスター描画エンジン
+        function drawPoster() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const paletteObj = getCurrentColors();
+            const colors = paletteObj.map(c => c.hex);
+
+            // 背景：高級紙のような美しいマットグラデーション
+            const bgGradient = ctx.createLinearGradient(0, 0, width, height);
+            bgGradient.addColorStop(0, colors[4] || '#FAF8F5');
+            bgGradient.addColorStop(1, adjustBrightness(colors[4] || '#FAF8F5', -8));
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // 内側の極細ボーダー（額縁のエッジ）
+            ctx.strokeStyle = adjustBrightness(colors[4] || '#FAF8F5', -22);
+            ctx.lineWidth = 1;
+            ctx.strokeRect(48, 48, width - 96, height - 96);
+
+            const centerX = width / 2;
+            const centerY = height / 2 - 50;
+            const baseSize = 210 * state.scale;
+
+            // 背景の円形幾何学スタンプ
+            ctx.strokeStyle = adjustBrightness(colors[4] || '#FAF8F5', -16);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, baseSize * 1.5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 各パーツ描画（半透明のレイヤーバランス）
+            state.shapeLayers.forEach((layer, idx) => {
+                const lx = centerX + layer.offsetX * state.scale;
+                const ly = centerY + layer.offsetY * state.scale;
+                const size = baseSize * layer.size;
+                const color = colors[(idx + 1) % colors.length];
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+                ctx.shadowBlur = 24;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 10;
+
+                if (layer.type === 'triangle') {
+                    drawTriangle(lx, ly, size, color);
+                } else if (layer.type === 'double-circle') {
+                    drawDoubleCircle(lx, ly, size, color, colors[3], colors[0]);
+                } else if (layer.type === 'rect') {
+                    drawRectangle(lx, ly, size, color);
+                } else if (layer.type === 'arch') {
+                    drawArch(lx, ly, size, color);
+                } else if (layer.type === 'wave') {
+                    drawWave(lx, ly, size, color);
+                }
+                ctx.restore();
+            });
+
+            // 赤点線ガイドUI
+            if (state.showRedOutline) {
+                state.shapeLayers.forEach((layer, idx) => {
+                    const isSelected = (idx === state.selectedIndex);
+                    const lx = centerX + layer.offsetX * state.scale;
+                    const ly = centerY + layer.offsetY * state.scale;
+                    const size = baseSize * layer.size;
+
+                    ctx.save();
+                    ctx.strokeStyle = isSelected ? '#E11D48' : 'rgba(225, 29, 72, 0.35)';
+                    ctx.lineWidth = isSelected ? 2.5 : 1;
+                    ctx.setLineDash(isSelected ? [6, 4] : [3, 3]);
+
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, size + 16, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = isSelected ? '#E11D48' : 'rgba(225, 29, 72, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, isSelected ? 5 : 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.restore();
+                });
+            }
+
+            drawHotelTypography(width, height, colors, paletteObj);
+        }
+
+        function drawTriangle(x, y, radius, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.82;
+            ctx.beginPath();
+            for (let i = 0; i < 3; i++) {
+                const angle = (i * 120 - 90) * Math.PI / 180;
+                const tx = x + radius * Math.cos(angle);
+                const ty = y + radius * Math.sin(angle);
+                if (i === 0) ctx.moveTo(tx, ty);
+                else ctx.lineTo(tx, ty);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawDoubleCircle(x, y, radius, outerColor, innerColor, accentColor) {
+            ctx.save();
+            ctx.globalAlpha = 0.88;
+            ctx.strokeStyle = outerColor;
+            ctx.lineWidth = radius * 0.14;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.92;
+            ctx.fillStyle = innerColor;
+            ctx.beginPath();
+            ctx.arc(x, y, radius * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = accentColor;
+            ctx.beginPath();
+            ctx.arc(x, y, radius * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawRectangle(x, y, radius, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.85;
+            const side = radius * 1.4;
+            ctx.beginPath();
+            ctx.roundRect(x - side/2, y - side/2, side, side, 4);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawArch(x, y, radius, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.88;
+            const w = radius * 1.2;
+            const h = radius * 1.7;
+            ctx.beginPath();
+            ctx.arc(x, y - h/4, w/2, Math.PI, 0, false);
+            ctx.lineTo(x + w/2, y + h/2);
+            ctx.lineTo(x - w/2, y + h/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawWave(x, y, radius, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.85;
+            ctx.beginPath();
+            ctx.ellipse(x, y, radius * 1.3, radius * 0.65, Math.PI / 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawHotelTypography(width, height, colors, paletteObj) {
+            ctx.save();
+
+            // 上部コレクション表記
+            ctx.fillStyle = colors[1];
+            ctx.font = '500 11px "Montserrat", sans-serif';
+            ctx.letterSpacing = '5px';
+            ctx.fillText(`COLLECTION NO. 0${state.paletteIndex + 1} — ARCHITECTURAL INTERIOR`, 72, 90);
+
+            // メインタイトル（洗練されたセリフ書体風）
+            ctx.fillStyle = colors[0];
+            ctx.font = '600 44px "Cinzel", "Shippori Mincho", serif';
+            ctx.letterSpacing = '2px';
+            ctx.textAlign = 'left';
+            ctx.fillText(state.title, 72, height - 205);
+
+            // サブタイトル
+            ctx.fillStyle = colors[2];
+            ctx.font = '400 13px "Montserrat", sans-serif';
+            ctx.letterSpacing = '1.5px';
+            ctx.fillText(`TONE: ${state.mood.toUpperCase()} / PALETTE: ${paletteObj[state.paletteIndex % paletteObj.length]?.name || 'Curated'}`, 72, height - 162);
+
+            // 下部カラーパレットスウォッチ
+            const barY = height - 110;
+            const barHeight = 24;
+            const totalWidth = width - 144;
+            const blockWidth = totalWidth / 5;
+
+            colors.forEach((colorHex, idx) => {
+                ctx.fillStyle = colorHex;
+                ctx.fillRect(72 + idx * blockWidth, barY, blockWidth, barHeight);
+                
+                ctx.fillStyle = colors[1];
+                ctx.font = '400 9px "Montserrat", monospace';
+                ctx.letterSpacing = '1px';
+                ctx.textAlign = 'center';
+                ctx.fillText(paletteObj[idx].hex, 72 + (idx + 0.5) * blockWidth, barY + barHeight + 16);
+            });
+
+            // フッタークレジット
+            ctx.fillStyle = colors[2];
+            ctx.font = '400 10px "Montserrat", monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(`HOTEL GALLERY COLLECTION © 2026`, width - 72, height - 42);
+            
+            ctx.restore();
+        }
+
+        function adjustBrightness(hex, percent) {
+            let num = parseInt(hex.replace("#",""), 16),
+                amt = Math.round(2.55 * percent),
+                R = (num >> 16) + amt,
+                G = (num >> 8 & 0x00FF) + amt,
+                B = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
