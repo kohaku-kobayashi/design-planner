@@ -150,7 +150,7 @@
                 <h2 class="step-title"><span class="step-no">03</span>ふたりの色をもちよる<span class="step-en">Our Colors</span></h2>
                 <p class="help">思い出の色や好きな色を足しましょう。色の四角をタップすると色を変えられます。名前や思い出も自由に書けます。</p>
                 <div id="palette-list" class="space-y-3"></div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-3">
                     <button type="button" id="btn-add-elder" class="btn"><i class="fa-solid fa-plus"></i><span class="owner-dot owner-elder"></span><span><span data-owner-label="elder">年長の方</span>の色を足す</span></button>
                     <button type="button" id="btn-add-young" class="btn"><i class="fa-solid fa-plus"></i><span class="owner-dot owner-young"></span><span><span data-owner-label="young">若い方</span>の色を足す</span></button>
                 </div>
@@ -215,7 +215,7 @@
 
                 <div>
                     <p class="label">図形を足す</p>
-                    <div id="shape-add" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                    <div id="shape-add" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"></div>
                 </div>
 
                 <!-- 全体の大きさ -->
@@ -1348,7 +1348,7 @@
         function renderShapeAdd() {
             const wrap = $('shape-add');
             wrap.innerHTML = SHAPE_TYPES.map(t => `
-                <button type="button" data-type="${t.id}" class="add-shape btn justify-start" aria-label="${t.label}を足す">
+                <button type="button" data-type="${t.id}" class="add-shape btn justify-start whitespace-nowrap px-3" aria-label="${t.label}を足す">
                     ${shapeIconSvg(t.id, '#e7e5e4', 26)}<span>${t.label}</span>
                 </button>`).join('');
             wrap.querySelectorAll('.add-shape').forEach(btn => btn.addEventListener('click', () => addShape(btn.dataset.type)));
