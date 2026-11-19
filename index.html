@@ -94,8 +94,8 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 03. Composition & Shapes
                     </h2>
                     <label class="flex items-center gap-2 text-xs text-stone-400 font-light cursor-pointer">
-                        <input type="checkbox" id="show-red-outline" checked class="rounded accent-stone-500 bg-stone-950 border-stone-700">
-                        赤点線ガイド表示
+                        <input type="checkbox" id="show-red-outline" class="rounded accent-stone-500 bg-stone-950 border-stone-700">
+                        選択中の図形を示す枠
                     </label>
                 </div>
 
@@ -249,7 +249,7 @@
             mood: 'calm',
             paletteIndex: 0,
             scale: 1.0,
-            showRedOutline: true,
+            showRedOutline: false,
             title: 'AESTHETIC SILENCE',
             selectedIndex: 0,
             shapeLayers: [
@@ -274,16 +274,46 @@
         const subShapeControls = document.getElementById('sub-shape-controls');
         const showRedOutlineCheck = document.getElementById('show-red-outline');
 
-        function init() {
+        // 図形の大きさ・位置の基準（描画とクリック判定で共通に使う）
+        const BASE_SIZE = 210;
+        function getLayout() {
+            return {
+                centerX: canvas.width / 2,
+                centerY: canvas.height / 2 - 50,
+                baseSize: BASE_SIZE * state.scale
+            };
+        }
+
+        // ポスター用フォントの読み込みを待つ（オフライン等で読めない場合も数秒で描画に進む）
+        function waitForFonts() {
+            if (!document.fonts || !document.fonts.load) return Promise.resolve();
+            const loads = [
+                document.fonts.load('600 44px "Cinzel"'),
+                document.fonts.load('400 13px "Montserrat"'),
+                document.fonts.load('500 11px "Montserrat"'),
+                document.fonts.load('600 44px "Shippori Mincho"', 'あ漢')
+            ];
+            const timeout = new Promise(resolve => setTimeout(resolve, 3000));
+            return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]).catch(() => {});
+        }
+
+        async function init() {
             bindEvents();
             renderSubShapeControls();
             renderPaletteList();
+            await waitForFonts();
             drawPoster();
+            // 後から読み込まれた字形（日本語の追加サブセット等）があれば描き直す
+            if (document.fonts) document.fonts.addEventListener('loadingdone', () => drawPoster());
+        }
+
+        function getCurrentPalette() {
+            const moodPalettes = PALETTE_DATA[state.mood];
+            return moodPalettes[state.paletteIndex % moodPalettes.length];
         }
 
         function getCurrentColors() {
-            const moodPalettes = PALETTE_DATA[state.mood];
-            return moodPalettes[state.paletteIndex % moodPalettes.length].colors;
+            return getCurrentPalette().colors;
         }
 
         function renderPaletteList() {
@@ -480,21 +510,7 @@
                 const clickX = (e.clientX - rect.left) * scaleX;
                 const clickY = (e.clientY - rect.top) * scaleY;
 
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2 - 50;
-                const baseSize = 220 * state.scale;
-
-                let clickedIdx = -1;
-
-                state.shapeLayers.forEach((layer, idx) => {
-                    const lx = centerX + layer.offsetX * state.scale;
-                    const ly = centerY + layer.offsetY * state.scale;
-                    const r = baseSize * layer.size;
-                    const dist = Math.hypot(clickX - lx, clickY - ly);
-                    if (dist < r + 25) {
-                        clickedIdx = idx;
-                    }
-                });
+                const clickedIdx = hitTestShape(clickX, clickY);
 
                 if (clickedIdx !== -1) {
                     state.selectedIndex = clickedIdx;
@@ -537,9 +553,7 @@
             ctx.lineWidth = 1;
             ctx.strokeRect(48, 48, width - 96, height - 96);
 
-            const centerX = width / 2;
-            const centerY = height / 2 - 50;
-            const baseSize = 210 * state.scale;
+            const { centerX, centerY, baseSize } = getLayout();
 
             // 背景の円形幾何学スタンプ
             ctx.strokeStyle = adjustBrightness(colors[4] || '#FAF8F5', -16);
@@ -604,20 +618,63 @@
             drawHotelTypography(width, height, colors, paletteObj);
         }
 
+        // 図形の輪郭（描画とクリック判定の両方で使う）
+        function shapePath(type, x, y, radius) {
+            const p = new Path2D();
+            if (type === 'triangle') {
+                for (let i = 0; i < 3; i++) {
+                    const angle = (i * 120 - 90) * Math.PI / 180;
+                    const tx = x + radius * Math.cos(angle);
+                    const ty = y + radius * Math.sin(angle);
+                    if (i === 0) p.moveTo(tx, ty);
+                    else p.lineTo(tx, ty);
+                }
+                p.closePath();
+            } else if (type === 'double-circle') {
+                // 外側の輪の太さぶんを含めた円
+                p.arc(x, y, radius * 1.07, 0, Math.PI * 2);
+            } else if (type === 'rect') {
+                const side = radius * 1.4;
+                p.rect(x - side / 2, y - side / 2, side, side);
+            } else if (type === 'arch') {
+                const w = radius * 1.2;
+                const h = radius * 1.7;
+                p.arc(x, y - h / 4, w / 2, Math.PI, 0, false);
+                p.lineTo(x + w / 2, y + h / 2);
+                p.lineTo(x - w / 2, y + h / 2);
+                p.closePath();
+            } else if (type === 'wave') {
+                p.ellipse(x, y, radius * 1.3, radius * 0.65, Math.PI / 8, 0, Math.PI * 2);
+            }
+            return p;
+        }
+
+        // 前面（後に描いた図形）から順に判定し、最初に当たった図形を返す
+        function hitTestShape(px, py) {
+            const { centerX, centerY, baseSize } = getLayout();
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.lineWidth = 24; // 指でも選びやすいよう輪郭の外側にも少し余裕を持たせる
+            let found = -1;
+            for (let idx = state.shapeLayers.length - 1; idx >= 0; idx--) {
+                const layer = state.shapeLayers[idx];
+                const lx = centerX + layer.offsetX * state.scale;
+                const ly = centerY + layer.offsetY * state.scale;
+                const path = shapePath(layer.type, lx, ly, baseSize * layer.size);
+                if (ctx.isPointInPath(path, px, py) || ctx.isPointInStroke(path, px, py)) {
+                    found = idx;
+                    break;
+                }
+            }
+            ctx.restore();
+            return found;
+        }
+
         function drawTriangle(x, y, radius, color) {
             ctx.save();
             ctx.fillStyle = color;
             ctx.globalAlpha = 0.82;
-            ctx.beginPath();
-            for (let i = 0; i < 3; i++) {
-                const angle = (i * 120 - 90) * Math.PI / 180;
-                const tx = x + radius * Math.cos(angle);
-                const ty = y + radius * Math.sin(angle);
-                if (i === 0) ctx.moveTo(tx, ty);
-                else ctx.lineTo(tx, ty);
-            }
-            ctx.closePath();
-            ctx.fill();
+            ctx.fill(shapePath('triangle', x, y, radius));
             ctx.restore();
         }
 
@@ -679,27 +736,60 @@
             ctx.restore();
         }
 
+        // 字間つきで文字を描く。ctx.letterSpacing 非対応のブラウザでは1文字ずつ並べて同じ見た目にする
+        const SUPPORTS_LETTER_SPACING = 'letterSpacing' in CanvasRenderingContext2D.prototype;
+        function measureSpaced(text, spacing) {
+            if (!spacing) return ctx.measureText(text).width;
+            if (SUPPORTS_LETTER_SPACING) {
+                ctx.letterSpacing = `${spacing}px`;
+                const w = ctx.measureText(text).width;
+                ctx.letterSpacing = '0px';
+                return w;
+            }
+            let w = 0;
+            for (const ch of text) w += ctx.measureText(ch).width + spacing;
+            return w;
+        }
+        function fillSpacedText(text, x, y, spacing = 0, align = 'left') {
+            const total = measureSpaced(text, spacing);
+            let startX = x;
+            if (align === 'center') startX = x - total / 2;
+            else if (align === 'right') startX = x - total;
+            const prevAlign = ctx.textAlign;
+            ctx.textAlign = 'left';
+            if (!spacing) {
+                ctx.fillText(text, startX, y);
+            } else if (SUPPORTS_LETTER_SPACING) {
+                ctx.letterSpacing = `${spacing}px`;
+                ctx.fillText(text, startX, y);
+                ctx.letterSpacing = '0px';
+            } else {
+                let cx = startX;
+                for (const ch of text) {
+                    ctx.fillText(ch, cx, y);
+                    cx += ctx.measureText(ch).width + spacing;
+                }
+            }
+            ctx.textAlign = prevAlign;
+        }
+
         function drawHotelTypography(width, height, colors, paletteObj) {
             ctx.save();
 
             // 上部コレクション表記
             ctx.fillStyle = colors[1];
             ctx.font = '500 11px "Montserrat", sans-serif';
-            ctx.letterSpacing = '5px';
-            ctx.fillText(`COLLECTION NO. 0${state.paletteIndex + 1} — ARCHITECTURAL INTERIOR`, 72, 90);
+            fillSpacedText(`COLLECTION NO. 0${state.paletteIndex + 1} — ARCHITECTURAL INTERIOR`, 72, 90, 5);
 
             // メインタイトル（洗練されたセリフ書体風）
             ctx.fillStyle = colors[0];
             ctx.font = '600 44px "Cinzel", "Shippori Mincho", serif';
-            ctx.letterSpacing = '2px';
-            ctx.textAlign = 'left';
-            ctx.fillText(state.title, 72, height - 205);
+            fillSpacedText(state.title, 72, height - 205, 2);
 
-            // サブタイトル
+            // サブタイトル（パレット名はパレット本体から取る）
             ctx.fillStyle = colors[2];
             ctx.font = '400 13px "Montserrat", sans-serif';
-            ctx.letterSpacing = '1.5px';
-            ctx.fillText(`TONE: ${state.mood.toUpperCase()} / PALETTE: ${paletteObj[state.paletteIndex % paletteObj.length]?.name || 'Curated'}`, 72, height - 162);
+            fillSpacedText(`TONE: ${state.mood.toUpperCase()} / PALETTE: ${getCurrentPalette().name}`, 72, height - 162, 1.5);
 
             // 下部カラーパレットスウォッチ
             const barY = height - 110;
@@ -713,16 +803,13 @@
                 
                 ctx.fillStyle = colors[1];
                 ctx.font = '400 9px "Montserrat", monospace';
-                ctx.letterSpacing = '1px';
-                ctx.textAlign = 'center';
-                ctx.fillText(paletteObj[idx].hex, 72 + (idx + 0.5) * blockWidth, barY + barHeight + 16);
+                fillSpacedText(paletteObj[idx].hex, 72 + (idx + 0.5) * blockWidth, barY + barHeight + 16, 1, 'center');
             });
 
             // フッタークレジット
             ctx.fillStyle = colors[2];
             ctx.font = '400 10px "Montserrat", monospace';
-            ctx.textAlign = 'right';
-            ctx.fillText(`HOTEL GALLERY COLLECTION © 2026`, width - 72, height - 42);
+            fillSpacedText(`HOTEL GALLERY COLLECTION © 2026`, width - 72, height - 42, 0, 'right');
             
             ctx.restore();
         }
