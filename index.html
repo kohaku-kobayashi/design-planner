@@ -171,12 +171,12 @@
 
             <!-- 4. 形 -->
             <div class="panel">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="step-title"><span class="step-no">04</span>形をくみあわせる<span class="step-en sr-only">Shapes</span></h2>
-                    <label class="flex items-center gap-2 text-base text-stone-200 cursor-pointer min-h-[48px]">
-                        <input type="checkbox" id="show-red-outline">
-                        選択中の図形を示す枠
-                    </label>
+                <h2 class="step-title"><span class="step-no">04</span>形をくみあわせる<span class="step-en">Composition</span></h2>
+                <p class="help">図形を足して、ポスターの上で指やマウスで動かしましょう。選んだ図形の右下に出る丸いつまみを引くと、大きさが変わります。</p>
+
+                <div>
+                    <p class="label">図形を足す</p>
+                    <div id="shape-add" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
                 </div>
 
                 <!-- 全体の大きさ -->
@@ -188,8 +188,16 @@
                     <input type="range" id="shape-scale" min="0.5" max="1.6" step="0.1" value="1.0">
                 </div>
 
+                <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
+                    <input type="checkbox" id="show-red-outline">
+                    選択中の図形を示す枠を表示する
+                </label>
+
                 <!-- 図形ごとの設定 -->
-                <div class="space-y-3" id="sub-shape-controls"></div>
+                <div>
+                    <p class="label">置いた図形 <span class="font-normal text-stone-300">（上にあるものほど前に見えます）</span></p>
+                    <div class="space-y-3" id="sub-shape-controls"></div>
+                </div>
 
                 <!-- タイトル -->
                 <div class="pt-4 border-t border-stone-700">
@@ -206,7 +214,10 @@
                 <div class="w-full flex flex-wrap items-center justify-between gap-3">
                     <h2 class="step-title"><i class="fa-solid fa-image text-amber-200 text-base"></i>できあがり<span class="step-en">Gallery Preview</span></h2>
                     <div id="preview-actions" class="flex flex-wrap gap-2">
-                        <button id="btn-download" class="btn btn-primary">
+                        <button type="button" id="btn-undo" class="btn" disabled>
+                            <i class="fa-solid fa-rotate-left"></i> ひとつ戻す
+                        </button>
+                        <button type="button" id="btn-download" class="btn btn-primary">
                             <i class="fa-solid fa-download"></i> 画像で保存
                         </button>
                     </div>
@@ -215,11 +226,12 @@
                 <!-- 額縁のような背景 -->
                 <div class="w-full flex justify-center items-center bg-[#0a0a0a] p-4 sm:p-6 rounded-2xl border border-stone-800 overflow-hidden shadow-2xl relative">
                     <div class="absolute inset-2 border border-stone-800/60 pointer-events-none rounded-xl"></div>
-                    <canvas id="posterCanvas" class="max-w-full h-auto rounded shadow-2xl cursor-pointer" width="800" height="1131" aria-label="ポスターのプレビュー"></canvas>
+                    <canvas id="posterCanvas" class="max-w-full h-auto rounded shadow-2xl" width="1600" height="2262" aria-label="ポスターのプレビュー。図形をドラッグして動かせます"></canvas>
                 </div>
 
                 <p id="canvas-help" class="help text-center">
-                    図形をタップすると、その図形を選べます。
+                    <i class="fa-solid fa-hand-pointer text-amber-200"></i> 図形を押したまま動かすと位置が変わります。<br class="hidden sm:inline">
+                    右下の丸いつまみを引くと大きさが変わります。
                 </p>
             </div>
         </section>
@@ -333,7 +345,7 @@
             ]
         };
 
-        // 選んだ人
+        // 選んだ人・置いた人
         const OWNERS = {
             elder: '年長の方',
             young: '若い方',
@@ -343,6 +355,22 @@
         const OWNER_CHOICES = ['elder', 'young', 'both'];
         const MAX_COLORS = 10;
         const MIN_COLORS = 2;
+
+        // 図形の種類（icon は一覧・ボタン用の小さな SVG）
+        const SHAPE_TYPES = [
+            { id: 'circle',        label: '丸',     extent: 1.0,  icon: '<circle cx="12" cy="12" r="9"/>' },
+            { id: 'double-circle', label: '二重丸', extent: 1.07, icon: '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="12" cy="12" r="3.6"/>' },
+            { id: 'half',          label: '半円',   extent: 1.0,  icon: '<path d="M3 16 A9 9 0 0 1 21 16 Z"/>' },
+            { id: 'rect',          label: '四角',   extent: 1.0,  icon: '<rect x="5" y="5" width="14" height="14" rx="1"/>' },
+            { id: 'band',          label: '帯',     extent: 1.22, icon: '<rect x="2" y="9.5" width="20" height="5"/>' },
+            { id: 'triangle',      label: '三角',   extent: 1.0,  icon: '<path d="M12 3 L21 19 L3 19 Z"/>' },
+            { id: 'arch',          label: 'アーチ', extent: 1.05, icon: '<path d="M6 21 V10 A6 6 0 0 1 18 10 V21 Z"/>' },
+            { id: 'wave',          label: 'だ円',   extent: 1.3,  icon: '<ellipse cx="12" cy="12" rx="10" ry="5.5"/>' }
+        ];
+        const shapeTypeInfo = type => SHAPE_TYPES.find(t => t.id === type) || SHAPE_TYPES[0];
+        function shapeIconSvg(type, color = 'currentColor', size = 24) {
+            return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" style="color:${color}" aria-hidden="true">${shapeTypeInfo(type).icon}</svg>`;
+        }
 
         // ===== 小さな道具 =====
         let uidCounter = 0;
@@ -394,6 +422,12 @@
             return preset.colors.map(c => ({ id: uid('c'), hex: c.hex, name: c.name, memory: '', owner: 'base' }));
         }
 
+        // ===== ポスターの寸法 =====
+        // 描画はすべて 800×1131 の「設計座標」で行い、表示・保存・印刷のときに倍率を掛ける
+        const W = 800, H = 1131;
+        const DISPLAY_K = 2; // 画面表示は2倍の解像度で描いてくっきり見せる
+        const BASE_SIZE = 210;
+
         // ===== 状態 =====
         const state = {
             mood: 'calm',
@@ -401,22 +435,19 @@
             palette: paletteFromPreset(PALETTE_DATA.calm[0]),
             bgId: null,
             names: { elder: '', young: '' },
-            mix: { aId: null, bId: null, ratio: 0.5 },
+            mix: { aId: null, bId: null, ratio: 0.5, aManual: false, bManual: false },
             scale: 1.0,
-            showRedOutline: false,
+            showGuide: false,
             title: 'AESTHETIC SILENCE',
-            selectedIndex: 0,
-            shapeLayers: [
-                { type: 'double-circle', size: 1.1, offsetX: -20, offsetY: 20 },
-                { type: 'arch', size: 0.95, offsetX: 50, offsetY: -50 },
-                { type: 'rect', size: 0.7, offsetX: -80, offsetY: -70 },
-                { type: 'triangle', size: 0.8, offsetX: 70, offsetY: 80 }
-            ]
+            shapes: [],
+            selectedId: null,
+            lastOwner: 'both'
         };
 
         const $ = id => document.getElementById(id);
         const canvas = $('posterCanvas');
-        const ctx = canvas.getContext('2d');
+        let ctx = canvas.getContext('2d'); // 保存・印刷のときは一時的に別のキャンバスに差し替える
+        const hitCtx = document.createElement('canvas').getContext('2d'); // クリック判定専用
 
         // ===== 色の役割 =====
         function findColor(id) {
@@ -426,13 +457,17 @@
             return state.palette.reduce((best, c) => (!best || luminance(c.hex) > luminance(best.hex) ? c : best), null);
         }
         function getBgColor() {
-            return findColor(state.bgId) || lightestColor() || { hex: '#FAF8F5' };
+            return findColor(state.bgId) || lightestColor() || { id: null, hex: '#FAF8F5' };
         }
-        // 図形に使う色（背景以外）
-        function getShapeColors() {
+        // 図形に使える色（背景以外）
+        function shapeColorCandidates() {
             const bg = getBgColor();
-            const list = state.palette.filter(c => c.id !== bg.id).map(c => c.hex);
-            return list.length ? list : [adjustBrightness(bg.hex, -40)];
+            const list = state.palette.filter(c => c.id !== bg.id);
+            return list.length ? list : state.palette;
+        }
+        function getShapeHex(shape) {
+            const c = findColor(shape.colorId);
+            return c ? c.hex : normalizeHex(shape.hex);
         }
         // ポスターの文字色：背景との差がいちばん大きいパレットの色。差が足りなければ黒か白
         function getTextColors() {
@@ -453,16 +488,151 @@
             return state.palette.some(c => c.owner !== 'base' || c.memory.trim());
         }
 
-        // ===== 描画の基準 =====
-        const BASE_SIZE = 210;
+        // ===== 図形 =====
+        function makeDefaultShapes() {
+            const cands = shapeColorCandidates();
+            const pick = i => cands[(i + 1) % cands.length];
+            return [
+                { type: 'double-circle', size: 1.1,  x: -20, y: 20 },
+                { type: 'arch',          size: 0.95, x: 50,  y: -50 },
+                { type: 'rect',          size: 0.7,  x: -80, y: -70 },
+                { type: 'triangle',      size: 0.8,  x: 70,  y: 80 }
+            ].map((s, i) => ({ id: uid('s'), rotation: 0, colorId: pick(i).id, hex: pick(i).hex, owner: 'base', ...s }));
+        }
+        function selectedShape() {
+            return state.shapes.find(s => s.id === state.selectedId) || null;
+        }
         function getLayout() {
+            return { centerX: W / 2, centerY: H / 2 - 80, baseSize: BASE_SIZE * state.scale };
+        }
+        function shapeGeometry(shape) {
+            const { centerX, centerY, baseSize } = getLayout();
             return {
-                centerX: canvas.width / 2,
-                centerY: canvas.height / 2 - 50,
-                baseSize: BASE_SIZE * state.scale
+                cx: centerX + shape.x * state.scale,
+                cy: centerY + shape.y * state.scale,
+                r: baseSize * shape.size,
+                rot: (shape.rotation || 0) * Math.PI / 180
             };
         }
 
+        // 図形の輪郭（原点中心）。描画とクリック判定の両方で使う
+        function shapePath(type, r) {
+            const p = new Path2D();
+            if (type === 'circle') {
+                p.arc(0, 0, r, 0, Math.PI * 2);
+            } else if (type === 'double-circle') {
+                p.arc(0, 0, r * 1.07, 0, Math.PI * 2); // 外側の輪の太さぶんを含める
+            } else if (type === 'half') {
+                p.arc(0, r * 0.3, r, Math.PI, 0, false);
+                p.closePath();
+            } else if (type === 'rect') {
+                const side = r * 1.4;
+                p.rect(-side / 2, -side / 2, side, side);
+            } else if (type === 'band') {
+                p.rect(-r * 1.2, -r * 0.22, r * 2.4, r * 0.44);
+            } else if (type === 'triangle') {
+                for (let i = 0; i < 3; i++) {
+                    const a = (i * 120 - 90) * Math.PI / 180;
+                    if (i === 0) p.moveTo(r * Math.cos(a), r * Math.sin(a));
+                    else p.lineTo(r * Math.cos(a), r * Math.sin(a));
+                }
+                p.closePath();
+            } else if (type === 'arch') {
+                const w = r * 1.2, h = r * 1.7;
+                p.arc(0, -h / 4, w / 2, Math.PI, 0, false);
+                p.lineTo(w / 2, h / 2);
+                p.lineTo(-w / 2, h / 2);
+                p.closePath();
+            } else if (type === 'wave') {
+                p.ellipse(0, 0, r * 1.3, r * 0.65, 0, 0, Math.PI * 2);
+            }
+            return p;
+        }
+
+        // 前面（後に描いた図形）から順に判定し、最初に当たった図形を返す
+        function hitTestShape(px, py) {
+            hitCtx.lineWidth = 24; // 指でも選びやすいよう輪郭の外側にも少し余裕を持たせる
+            for (let i = state.shapes.length - 1; i >= 0; i--) {
+                const s = state.shapes[i];
+                const g = shapeGeometry(s);
+                const path = shapePath(s.type, g.r);
+                hitCtx.setTransform(1, 0, 0, 1, 0, 0);
+                hitCtx.translate(g.cx, g.cy);
+                hitCtx.rotate(g.rot);
+                if (hitCtx.isPointInPath(path, px, py) || hitCtx.isPointInStroke(path, px, py)) return s;
+            }
+            return null;
+        }
+
+        // 大きさを変えるつまみ（図形の右下）
+        function cssToDesign() {
+            const w = canvas.getBoundingClientRect().width;
+            return w > 0 ? W / w : 1;
+        }
+        function knobPosition(shape) {
+            const g = shapeGeometry(shape);
+            const d = g.r * shapeTypeInfo(shape.type).extent * 0.75;
+            const m = 18 * cssToDesign();
+            return {
+                x: Math.min(W - m, Math.max(m, g.cx + d)),
+                y: Math.min(H - m, Math.max(m, g.cy + d))
+            };
+        }
+        function sizeFromKnob(shape, px, py) {
+            const g = shapeGeometry(shape);
+            const per = getLayout().baseSize * shapeTypeInfo(shape.type).extent * 0.75 * Math.SQRT2;
+            return Math.min(2.6, Math.max(0.15, Math.hypot(px - g.cx, py - g.cy) / per));
+        }
+
+        // ===== 履歴（ひとつ戻す） =====
+        const history = [];
+        function serializeWork() {
+            return {
+                mood: state.mood,
+                presetIndex: state.presetIndex,
+                palette: state.palette.map(c => ({ ...c })),
+                bgId: state.bgId,
+                names: { ...state.names },
+                scale: state.scale,
+                showGuide: state.showGuide,
+                title: state.title,
+                shapes: state.shapes.map(s => ({ ...s }))
+            };
+        }
+        function applyWork(w) {
+            state.mood = w.mood;
+            state.presetIndex = w.presetIndex;
+            state.palette = w.palette.map(c => ({ ...c }));
+            state.bgId = w.bgId;
+            state.names = { ...w.names };
+            state.scale = w.scale;
+            state.showGuide = w.showGuide;
+            state.title = w.title;
+            state.shapes = w.shapes.map(s => ({ ...s }));
+            if (!selectedShape()) state.selectedId = null;
+        }
+        function commit() {
+            const snap = JSON.stringify(serializeWork());
+            if (history[history.length - 1] !== snap) {
+                history.push(snap);
+                if (history.length > 80) history.shift();
+            }
+            $('btn-undo').disabled = history.length < 2;
+            onWorkChanged();
+        }
+        function undo() {
+            if (history.length < 2) return;
+            history.pop();
+            applyWork(JSON.parse(history[history.length - 1]));
+            $('btn-undo').disabled = history.length < 2;
+            renderAll();
+            onWorkChanged();
+            showToast('ひとつ前にもどしました');
+        }
+        // 作品が変わったとき（保存などはここにつなぐ）
+        function onWorkChanged() {}
+
+        // ===== フォント =====
         // ポスター用フォントの読み込みを待つ（オフライン等で読めない場合も数秒で描画に進む）
         function waitForFonts() {
             if (!document.fonts || !document.fonts.load) return Promise.resolve();
@@ -483,17 +653,42 @@
             requestAnimationFrame(() => { drawQueued = false; drawPoster(); });
         }
 
-        async function init() {
-            bindEvents();
+        function renderAll() {
+            renderNames();
             renderMoodTabs();
             renderPresetList();
             renderPaletteList();
             renderMixTool();
-            renderSubShapeControls();
+            renderShapeAdd();
+            renderShapeList();
+            renderPosterFields();
+            requestDraw();
+        }
+
+        async function init() {
+            state.shapes = makeDefaultShapes();
+            bindEvents();
+            renderAll();
             await waitForFonts();
             drawPoster();
+            commit();
             // 後から読み込まれた字形（日本語の追加サブセット等）があれば描き直す
             if (document.fonts) document.fonts.addEventListener('loadingdone', requestDraw);
+            // 画面の幅が変わるとつまみの大きさも変わるので描き直す
+            window.addEventListener('resize', requestDraw);
+        }
+
+        // ===== 01 つくる人 =====
+        function renderNames() {
+            $('name-elder').value = state.names.elder;
+            $('name-young').value = state.names.young;
+            refreshOwnerLabels();
+        }
+        function refreshOwnerLabels() {
+            document.querySelectorAll('[data-owner-label]').forEach(el => { el.textContent = ownerLabel(el.dataset.ownerLabel); });
+            document.querySelectorAll('.owner-btn').forEach(btn => {
+                btn.querySelector('.owner-name').textContent = ownerLabel(btn.dataset.owner);
+            });
         }
 
         // ===== 02 たたき台 =====
@@ -529,15 +724,30 @@
                 state.presetIndex = idx;
                 state.palette = paletteFromPreset(PALETTE_DATA[state.mood][idx]);
                 state.bgId = null;
-                state.mix.aId = state.mix.bId = null;
+                // 図形の色は新しいパレットの色に順番に置きかえる
+                const cands = shapeColorCandidates();
+                state.shapes.forEach((s, i) => {
+                    const c = cands[(i + 1) % cands.length];
+                    s.colorId = c.id;
+                    s.hex = c.hex;
+                });
                 renderPaletteList();
                 renderMixTool();
+                renderShapeList();
                 requestDraw();
+                commit();
                 showToast(`「${PALETTE_DATA[state.mood][idx].name}」をたたき台にしました`);
             }));
         }
 
         // ===== 03 ふたりの色 =====
+        function ownerButtons(current, cls) {
+            return OWNER_CHOICES.map(o => `
+                <button type="button" data-owner="${o}" class="owner-btn ${cls} btn btn-sm ${current === o ? 'btn-on' : ''}" aria-pressed="${current === o}">
+                    <span class="owner-dot owner-${o}"></span><span class="owner-name">${escapeHtml(ownerLabel(o))}</span>
+                </button>`).join('');
+        }
+
         function renderPaletteList() {
             const list = $('palette-list');
             const bg = getBgColor();
@@ -558,10 +768,7 @@
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
                         <span class="text-base text-stone-300 mr-1">えらんだ人</span>
-                        ${OWNER_CHOICES.map(o => `
-                            <button type="button" data-owner="${o}" class="owner-btn btn btn-sm ${c.owner === o ? 'btn-on' : ''}" aria-pressed="${c.owner === o}">
-                                <span class="owner-dot owner-${o}"></span>${escapeHtml(ownerLabel(o))}
-                            </button>`).join('')}
+                        ${ownerButtons(c.owner, 'color-owner')}
                         <label class="ml-auto flex items-center gap-2 text-base text-stone-200 cursor-pointer min-h-[44px]">
                             <input type="radio" name="bg-color" class="bg-radio" ${bg.id === c.id ? 'checked' : ''}>背景にする
                         </label>
@@ -575,45 +782,49 @@
                 const colorInput = row.querySelector('.color-input');
                 colorInput.addEventListener('input', e => {
                     color.hex = normalizeHex(e.target.value);
-                    renderMixTool();
+                    updateMixPreview();
                     requestDraw();
                 });
-                row.querySelector('.color-name').addEventListener('input', e => {
-                    color.name = e.target.value;
-                    renderMixTool();
-                    requestDraw();
-                });
-                row.querySelector('.color-memory').addEventListener('input', e => {
-                    color.memory = e.target.value;
-                    requestDraw();
-                });
-                row.querySelectorAll('.owner-btn').forEach(btn => btn.addEventListener('click', () => {
+                colorInput.addEventListener('change', () => { renderMixTool(); renderShapeList(); commit(); });
+                const nameInput = row.querySelector('.color-name');
+                nameInput.addEventListener('input', e => { color.name = e.target.value; requestDraw(); });
+                nameInput.addEventListener('change', () => { renderMixTool(); commit(); });
+                const memInput = row.querySelector('.color-memory');
+                memInput.addEventListener('input', e => { color.memory = e.target.value; requestDraw(); });
+                memInput.addEventListener('change', commit);
+                row.querySelectorAll('.color-owner').forEach(btn => btn.addEventListener('click', () => {
                     color.owner = btn.dataset.owner;
                     renderPaletteList();
                     renderMixTool();
                     requestDraw();
+                    commit();
                 }));
                 row.querySelector('.bg-radio').addEventListener('change', () => {
                     state.bgId = id;
                     requestDraw();
+                    commit();
                 });
                 row.querySelector('.delete-color').addEventListener('click', () => {
                     if (state.palette.length <= MIN_COLORS) return;
                     const label = color.name.trim() || 'この色';
                     if (!confirm(`「${label}」を消しますか？`)) return;
+                    // この色を使っていた図形は、色だけ残してパレットとのつながりを外す
+                    state.shapes.forEach(s => { if (s.colorId === id) { s.hex = color.hex; s.colorId = null; } });
                     state.palette = state.palette.filter(c => c.id !== id);
                     if (state.bgId === id) state.bgId = null;
                     renderPaletteList();
                     renderMixTool();
+                    renderShapeList();
                     requestDraw();
+                    commit();
                 });
             });
 
             const full = state.palette.length >= MAX_COLORS;
-            ['btn-add-elder', 'btn-add-young', 'btn-add-mix'].forEach(bid => { $(bid).disabled = full; });
+            ['btn-add-elder', 'btn-add-young', 'btn-add-mix'].forEach(bid => { const b = $(bid); if (b) b.disabled = full; });
         }
 
-        // 新しい色を足す（色選びの画面をすぐに開く）
+        // 新しい色を足す（openPicker のときは色選びの画面をすぐに開く）
         function addColor({ hex, name = '', memory = '', owner }, openPicker = false) {
             if (state.palette.length >= MAX_COLORS) {
                 showToast(`色は${MAX_COLORS}色までです。使わない色を消してから足してください`);
@@ -623,7 +834,9 @@
             state.palette.push(color);
             renderPaletteList();
             renderMixTool();
+            renderShapeList();
             requestDraw();
+            commit();
             const row = document.querySelector(`.palette-row[data-id="${color.id}"]`);
             if (row) {
                 row.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -637,9 +850,8 @@
         }
 
         function suggestNewColor() {
-            // 今のパレットの平均から少しずらした色を初期値にする
-            const shapes = getShapeColors();
-            const base = shapes[state.palette.length % shapes.length] || '#888888';
+            const cands = shapeColorCandidates();
+            const base = (cands[state.palette.length % cands.length] || {}).hex || '#888888';
             return mixHex(base, state.palette.length % 2 ? '#FFFFFF' : '#C0392B', 0.3);
         }
 
@@ -675,7 +887,7 @@
                 renderMixTool();
             }));
             updateMixPreview();
-            document.querySelectorAll('[data-owner-label]').forEach(el => { el.textContent = ownerLabel(el.dataset.ownerLabel); });
+            refreshOwnerLabels();
         }
         function currentMixHex() {
             const a = findColor(state.mix.aId), b = findColor(state.mix.bId);
@@ -690,76 +902,297 @@
             $('mix-b-mini').style.background = b ? b.hex : 'transparent';
         }
 
-        // ===== 04 図形（レイヤー） =====
-        function renderSubShapeControls() {
-            const subShapeControls = $('sub-shape-controls');
-            subShapeControls.innerHTML = '';
+        // ===== 04 形 =====
+        function renderShapeAdd() {
+            const wrap = $('shape-add');
+            wrap.innerHTML = SHAPE_TYPES.map(t => `
+                <button type="button" data-type="${t.id}" class="add-shape btn justify-start" aria-label="${t.label}を足す">
+                    ${shapeIconSvg(t.id, '#e7e5e4', 26)}<span>${t.label}</span>
+                </button>`).join('');
+            wrap.querySelectorAll('.add-shape').forEach(btn => btn.addEventListener('click', () => addShape(btn.dataset.type)));
+        }
 
-            const shapeTypes = [
-                { id: 'double-circle', label: '二重丸' },
-                { id: 'arch', label: 'アーチ' },
-                { id: 'triangle', label: '三角' },
-                { id: 'rect', label: '四角' },
-                { id: 'wave', label: 'だ円' }
-            ];
+        function addShape(type) {
+            const cands = shapeColorCandidates();
+            const c = cands[state.shapes.length % cands.length];
+            // 中央付近に、前の図形と重なりすぎないよう少しずらして置く
+            const n = state.shapes.length;
+            const shape = {
+                id: uid('s'), type,
+                x: Math.round(Math.cos(n * 2.4) * 60), y: Math.round(Math.sin(n * 2.4) * 60),
+                size: 0.6, rotation: 0,
+                colorId: c.id, hex: c.hex,
+                owner: state.lastOwner
+            };
+            state.shapes.push(shape);
+            state.selectedId = shape.id;
+            renderShapeList();
+            requestDraw();
+            commit();
+            showToast(`${shapeTypeInfo(type).label}を足しました。ポスターの上で動かせます`);
+        }
 
-            state.shapeLayers.forEach((layer, idx) => {
-                const isSelected = (state.selectedIndex === idx);
-                const wrapper = document.createElement('div');
-                wrapper.className = `p-4 rounded-xl border-2 transition-colors cursor-pointer ${isSelected ? 'border-amber-200/80 bg-stone-800/70' : 'border-stone-700 bg-stone-950/40 hover:border-stone-500'}`;
+        function selectShape(id) {
+            state.selectedId = id;
+            renderShapeList();
+            requestDraw();
+        }
 
-                let typeButtonsHtml = '';
-                shapeTypes.forEach(st => {
-                    const active = layer.type === st.id;
-                    typeButtonsHtml += `<button type="button" data-idx="${idx}" data-shape-type="${st.id}" class="layer-type-btn btn btn-sm ${active ? 'btn-on' : ''}">${st.label}</button>`;
-                });
+        function moveShapeOrder(id, where) {
+            const i = state.shapes.findIndex(s => s.id === id);
+            if (i < 0) return;
+            const [s] = state.shapes.splice(i, 1);
+            let j = i;
+            if (where === 'front') j = state.shapes.length;
+            else if (where === 'back') j = 0;
+            else if (where === 'forward') j = Math.min(state.shapes.length, i + 1);
+            else if (where === 'backward') j = Math.max(0, i - 1);
+            state.shapes.splice(j, 0, s);
+        }
 
-                wrapper.innerHTML = `
-                    <p class="font-bold text-base text-stone-50 mb-2">図形 ${idx + 1} ${isSelected ? '<span class="text-amber-200">（選択中）</span>' : ''}</p>
-                    <div class="flex flex-wrap gap-2 mb-3">${typeButtonsHtml}</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 text-base">
-                        <label class="block text-stone-200">大きさ
-                            <input type="range" min="0.3" max="2.0" step="0.05" value="${layer.size}" data-idx="${idx}" data-type="size" class="param-input">
-                        </label>
-                        <label class="block text-stone-200">左右の位置
-                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetX}" data-idx="${idx}" data-type="offsetX" class="param-input">
-                        </label>
-                        <label class="block text-stone-200">上下の位置
-                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetY}" data-idx="${idx}" data-type="offsetY" class="param-input">
-                        </label>
+        function renderShapeList() {
+            const list = $('sub-shape-controls');
+            if (!state.shapes.length) {
+                list.innerHTML = '<p class="help subbox">まだ図形がありません。上のボタンから足してください。</p>';
+                return;
+            }
+            // 前面の図形を上に表示する
+            const ordered = [...state.shapes].reverse();
+            list.innerHTML = ordered.map((s, k) => {
+                const info = shapeTypeInfo(s.type);
+                const hex = getShapeHex(s);
+                const sel = s.id === state.selectedId;
+                const pos = state.shapes.length - k; // 1 = いちばん後ろ
+                const header = `
+                    <button type="button" class="shape-select w-full flex items-center gap-3 text-left min-h-[48px]" aria-expanded="${sel}">
+                        <span class="w-12 h-12 rounded-lg bg-stone-200/90 flex items-center justify-center flex-shrink-0">${shapeIconSvg(s.type, hex, 34)}</span>
+                        <span class="flex-1 min-w-0">
+                            <span class="block font-bold text-base text-stone-50">${info.label}${sel ? '<span class="text-amber-200">（えらんでいます）</span>' : ''}</span>
+                            <span class="block text-sm text-stone-300"><span class="owner-dot owner-${s.owner}"></span>置いた人：${escapeHtml(ownerLabel(s.owner))}</span>
+                        </span>
+                        <i class="fa-solid ${sel ? 'fa-chevron-up' : 'fa-chevron-down'} text-stone-300"></i>
+                    </button>`;
+                if (!sel) {
+                    return `<div class="shape-card rounded-xl border-2 border-stone-700 bg-stone-950/40 hover:border-stone-500 px-3 py-2" data-id="${s.id}">${header}</div>`;
+                }
+                return `
+                <div class="shape-card rounded-xl border-2 border-amber-200/80 bg-stone-800/70 p-3 sm:p-4 space-y-4" data-id="${s.id}">
+                    ${header}
+                    <div>
+                        <p class="label">形</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${SHAPE_TYPES.map(t => `<button type="button" data-type="${t.id}" class="shape-type btn btn-sm ${t.id === s.type ? 'btn-on' : ''}" aria-pressed="${t.id === s.type}">${shapeIconSvg(t.id, t.id === s.type ? '#1c1917' : '#e7e5e4', 20)}${t.label}</button>`).join('')}
+                        </div>
                     </div>
-                `;
+                    <div>
+                        <p class="label">色</p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${state.palette.map(c => `
+                                <button type="button" data-color="${c.id}" class="shape-color w-12 h-12 rounded-xl border-[3px] ${s.colorId === c.id ? 'border-amber-200 ring-2 ring-amber-200/40' : 'border-white/20'}" style="background:${c.hex}" title="${escapeHtml(c.name || c.hex)}" aria-label="色：${escapeHtml(c.name || c.hex)}" aria-pressed="${s.colorId === c.id}"></button>`).join('')}
+                            <label class="flex items-center gap-2 text-base text-stone-200 ml-1 cursor-pointer">
+                                <input type="color" class="shape-color-free w-12 h-12" value="${hex.toLowerCase()}" aria-label="ほかの色をえらぶ">ほかの色
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="label">置いた人</p>
+                        <div class="flex flex-wrap gap-2">${ownerButtons(s.owner, 'shape-owner')}</div>
+                    </div>
+                    <div>
+                        <p class="label">大きさ</p>
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="btn btn-sm shape-size-step" data-step="-0.1" aria-label="小さくする"><i class="fa-solid fa-minus"></i></button>
+                            <input type="range" class="shape-size flex-1" min="0.15" max="2.6" step="0.05" value="${s.size}" aria-label="大きさ">
+                            <button type="button" class="btn btn-sm shape-size-step" data-step="0.1" aria-label="大きくする"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="label">向き</p>
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="btn btn-sm shape-rot-step" data-step="-15" aria-label="左に回す"><i class="fa-solid fa-rotate-left"></i></button>
+                            <input type="range" class="shape-rot flex-1" min="-180" max="180" step="5" value="${s.rotation || 0}" aria-label="向き">
+                            <button type="button" class="btn btn-sm shape-rot-step" data-step="15" aria-label="右に回す"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="label">重なり <span class="font-normal text-stone-300">（いま後ろから ${pos} 番目）</span></p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" class="btn btn-sm shape-order" data-where="front"><i class="fa-solid fa-angles-up"></i>いちばん前へ</button>
+                            <button type="button" class="btn btn-sm shape-order" data-where="forward"><i class="fa-solid fa-angle-up"></i>ひとつ前へ</button>
+                            <button type="button" class="btn btn-sm shape-order" data-where="back"><i class="fa-solid fa-angles-down"></i>いちばん後ろへ</button>
+                            <button type="button" class="btn btn-sm shape-order" data-where="backward"><i class="fa-solid fa-angle-down"></i>ひとつ後ろへ</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <button type="button" class="btn btn-sm shape-dup"><i class="fa-regular fa-clone"></i>おなじ図形をもうひとつ</button>
+                        <button type="button" class="btn btn-sm btn-danger shape-del ml-auto"><i class="fa-solid fa-trash-can"></i>この図形を消す</button>
+                    </div>
+                </div>`;
+            }).join('');
 
-                wrapper.addEventListener('click', (e) => {
-                    if (e.target.tagName !== 'INPUT' && !e.target.classList.contains('layer-type-btn')) {
-                        state.selectedIndex = idx;
-                        renderSubShapeControls();
-                        drawPoster();
+            list.querySelectorAll('.shape-card').forEach(card => {
+                const id = card.dataset.id;
+                const s = state.shapes.find(x => x.id === id);
+                card.querySelector('.shape-select').addEventListener('click', () => selectShape(state.selectedId === id ? null : id));
+                if (id !== state.selectedId) return;
+
+                card.querySelectorAll('.shape-type').forEach(btn => btn.addEventListener('click', () => {
+                    s.type = btn.dataset.type; renderShapeList(); requestDraw(); commit();
+                }));
+                card.querySelectorAll('.shape-color').forEach(btn => btn.addEventListener('click', () => {
+                    const c = findColor(btn.dataset.color);
+                    s.colorId = c.id; s.hex = c.hex; renderShapeList(); requestDraw(); commit();
+                }));
+                const free = card.querySelector('.shape-color-free');
+                free.addEventListener('input', e => { s.colorId = null; s.hex = normalizeHex(e.target.value); requestDraw(); });
+                free.addEventListener('change', () => { renderShapeList(); commit(); });
+                card.querySelectorAll('.shape-owner').forEach(btn => btn.addEventListener('click', () => {
+                    s.owner = btn.dataset.owner; state.lastOwner = s.owner; renderShapeList(); commit();
+                }));
+                const size = card.querySelector('.shape-size');
+                size.addEventListener('input', e => { s.size = parseFloat(e.target.value); requestDraw(); });
+                size.addEventListener('change', commit);
+                card.querySelectorAll('.shape-size-step').forEach(btn => btn.addEventListener('click', () => {
+                    s.size = Math.min(2.6, Math.max(0.15, +(s.size + parseFloat(btn.dataset.step)).toFixed(2)));
+                    size.value = s.size; requestDraw(); commit();
+                }));
+                const rot = card.querySelector('.shape-rot');
+                rot.addEventListener('input', e => { s.rotation = parseFloat(e.target.value); requestDraw(); });
+                rot.addEventListener('change', commit);
+                card.querySelectorAll('.shape-rot-step').forEach(btn => btn.addEventListener('click', () => {
+                    let r = (s.rotation || 0) + parseFloat(btn.dataset.step);
+                    if (r > 180) r -= 360;
+                    if (r < -180) r += 360;
+                    s.rotation = r; rot.value = r; requestDraw(); commit();
+                }));
+                card.querySelectorAll('.shape-order').forEach(btn => btn.addEventListener('click', () => {
+                    moveShapeOrder(id, btn.dataset.where); renderShapeList(); requestDraw(); commit();
+                }));
+                card.querySelector('.shape-dup').addEventListener('click', () => {
+                    const copy = { ...s, id: uid('s'), x: s.x + 30, y: s.y + 30 };
+                    state.shapes.splice(state.shapes.indexOf(s) + 1, 0, copy);
+                    state.selectedId = copy.id;
+                    renderShapeList(); requestDraw(); commit();
+                });
+                card.querySelector('.shape-del').addEventListener('click', () => {
+                    state.shapes = state.shapes.filter(x => x.id !== id);
+                    state.selectedId = null;
+                    renderShapeList(); requestDraw(); commit();
+                    showToast('図形を消しました（「ひとつ戻す」で元にもどせます）');
+                });
+            });
+        }
+
+        // ===== ポスター上の操作（マウス・タッチ共通の Pointer Events） =====
+        let drag = null;
+        function eventToDesign(e) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: (e.clientX - rect.left) * (W / rect.width), y: (e.clientY - rect.top) * (H / rect.height) };
+        }
+        function clampShapePosition(s) {
+            const { centerX, centerY } = getLayout();
+            const lim = v => v / state.scale;
+            s.x = Math.max(lim(40 - centerX), Math.min(lim(W - 40 - centerX), s.x));
+            s.y = Math.max(lim(40 - centerY), Math.min(lim(H - 40 - centerY), s.y));
+        }
+        function bindCanvasPointer() {
+            canvas.addEventListener('pointerdown', e => {
+                if (e.button !== undefined && e.button > 0) return;
+                const p = eventToDesign(e);
+                const sel = selectedShape();
+                const knobHit = 30 * cssToDesign();
+                if (sel) {
+                    const k = knobPosition(sel);
+                    if (Math.hypot(p.x - k.x, p.y - k.y) <= knobHit) {
+                        drag = { mode: 'resize', id: sel.id, moved: false };
                     }
-                });
-
-                subShapeControls.appendChild(wrapper);
+                }
+                if (!drag) {
+                    const hit = hitTestShape(p.x, p.y);
+                    if (hit) {
+                        const g = shapeGeometry(hit);
+                        drag = { mode: 'move', id: hit.id, dx: p.x - g.cx, dy: p.y - g.cy, moved: false };
+                        if (state.selectedId !== hit.id) selectShape(hit.id);
+                    } else if (state.selectedId) {
+                        selectShape(null);
+                    }
+                }
+                if (drag) {
+                    e.preventDefault();
+                    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+                }
             });
-
-            document.querySelectorAll('.layer-type-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const idx = parseInt(btn.dataset.idx);
-                    state.selectedIndex = idx;
-                    state.shapeLayers[idx].type = btn.dataset.shapeType;
-                    renderSubShapeControls();
-                    drawPoster();
-                });
+            canvas.addEventListener('pointermove', e => {
+                const p = eventToDesign(e);
+                if (!drag) {
+                    // マウスのときは、つかめる場所でカーソルの形を変える
+                    const sel = selectedShape();
+                    let cursor = 'default';
+                    if (sel) {
+                        const k = knobPosition(sel);
+                        if (Math.hypot(p.x - k.x, p.y - k.y) <= 30 * cssToDesign()) cursor = 'nwse-resize';
+                    }
+                    if (cursor === 'default' && hitTestShape(p.x, p.y)) cursor = 'grab';
+                    canvas.style.cursor = cursor;
+                    return;
+                }
+                const s = state.shapes.find(x => x.id === drag.id);
+                if (!s) return;
+                e.preventDefault();
+                if (drag.mode === 'move') {
+                    const { centerX, centerY } = getLayout();
+                    s.x = (p.x - drag.dx - centerX) / state.scale;
+                    s.y = (p.y - drag.dy - centerY) / state.scale;
+                    clampShapePosition(s);
+                    canvas.style.cursor = 'grabbing';
+                } else {
+                    s.size = sizeFromKnob(s, p.x, p.y);
+                }
+                drag.moved = true;
+                requestDraw();
             });
+            const end = () => {
+                if (!drag) return;
+                const moved = drag.moved;
+                drag = null;
+                if (moved) {
+                    renderShapeList();
+                    commit();
+                }
+            };
+            canvas.addEventListener('pointerup', end);
+            canvas.addEventListener('pointercancel', end);
+            canvas.addEventListener('lostpointercapture', end);
 
-            document.querySelectorAll('.param-input').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const idx = parseInt(e.target.dataset.idx);
-                    state.selectedIndex = idx;
-                    state.shapeLayers[idx][e.target.dataset.type] = parseFloat(e.target.value);
-                    drawPoster();
-                });
+            // キーボードでも動かせるようにする（矢印：移動／＋−：大きさ）
+            canvas.tabIndex = 0;
+            canvas.addEventListener('keydown', e => {
+                const s = selectedShape();
+                if (!s) return;
+                const step = e.shiftKey ? 20 : 5;
+                let handled = true;
+                if (e.key === 'ArrowLeft') s.x -= step;
+                else if (e.key === 'ArrowRight') s.x += step;
+                else if (e.key === 'ArrowUp') s.y -= step;
+                else if (e.key === 'ArrowDown') s.y += step;
+                else if (e.key === '+' || e.key === '=') s.size = Math.min(2.6, s.size + 0.05);
+                else if (e.key === '-') s.size = Math.max(0.15, s.size - 0.05);
+                else handled = false;
+                if (handled) {
+                    e.preventDefault();
+                    clampShapePosition(s);
+                    requestDraw();
+                    commit();
+                }
             });
+        }
+
+        // ===== 05 ことば（タイトル） =====
+        function renderPosterFields() {
+            $('poster-title').value = state.title;
+            $('shape-scale').value = state.scale;
+            $('scale-value').textContent = `${state.scale.toFixed(1)}倍`;
+            $('show-red-outline').checked = state.showGuide;
         }
 
         // ===== お知らせ =====
@@ -776,17 +1209,41 @@
             }, 2800);
         }
 
+        // ===== 保存（画像） =====
+        // k 倍の解像度で、つまみや枠を消したポスターを別のキャンバスに描く
+        function renderPosterCanvas(k) {
+            const off = document.createElement('canvas');
+            off.width = Math.round(W * k);
+            off.height = Math.round(H * k);
+            const prev = ctx;
+            ctx = off.getContext('2d');
+            try { drawPoster({ k, exporting: true }); } finally { ctx = prev; }
+            return off;
+        }
+        function fileSafe(name) {
+            return (String(name || '').trim().replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)) || 'poster';
+        }
+        function downloadPng() {
+            const off = renderPosterCanvas(2);
+            const link = document.createElement('a');
+            link.download = `${fileSafe(state.title)}.png`;
+            link.href = off.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('画像を保存しました');
+        }
+
         // ===== イベント =====
         function bindEvents() {
             ['elder', 'young'].forEach(who => {
-                $(`name-${who}`).addEventListener('input', e => {
+                const input = $(`name-${who}`);
+                input.addEventListener('input', e => {
                     state.names[who] = e.target.value;
-                    document.querySelectorAll('[data-owner-label]').forEach(el => { el.textContent = ownerLabel(el.dataset.ownerLabel); });
-                    document.querySelectorAll(`.owner-btn[data-owner="${who}"]`).forEach(btn => {
-                        btn.innerHTML = `<span class="owner-dot owner-${who}"></span>${escapeHtml(ownerLabel(who))}`;
-                    });
+                    refreshOwnerLabels();
                     requestDraw();
                 });
+                input.addEventListener('change', () => { renderMixTool(); renderShapeList(); commit(); });
             });
 
             $('btn-add-elder').addEventListener('click', () => addColor({ hex: suggestNewColor(), owner: 'elder' }, true));
@@ -800,74 +1257,55 @@
                 const hex = currentMixHex();
                 if (!hex) return;
                 const an = a.name.trim() || a.hex, bn = b.name.trim() || b.hex;
-                addColor({ hex, name: `${an}と${bn}のあいだ`, owner: 'both' });
-                showToast('ふたりの色をまぜて、パレットに足しました');
+                if (addColor({ hex, name: `${an}と${bn}のあいだ`, owner: 'both' })) showToast('ふたりの色をまぜて、パレットに足しました');
             });
 
-            $('shape-scale').addEventListener('input', (e) => {
+            const scale = $('shape-scale');
+            scale.addEventListener('input', e => {
                 state.scale = parseFloat(e.target.value);
                 $('scale-value').textContent = `${state.scale.toFixed(1)}倍`;
-                drawPoster();
+                requestDraw();
+            });
+            scale.addEventListener('change', commit);
+
+            $('show-red-outline').addEventListener('change', e => {
+                state.showGuide = e.target.checked;
+                requestDraw();
+                commit();
             });
 
-            $('show-red-outline').addEventListener('change', (e) => {
-                state.showRedOutline = e.target.checked;
-                drawPoster();
-            });
+            const title = $('poster-title');
+            title.addEventListener('input', e => { state.title = e.target.value; requestDraw(); });
+            title.addEventListener('change', commit);
 
-            $('poster-title').addEventListener('input', (e) => {
-                state.title = e.target.value || 'ふたりのギャラリー';
-                drawPoster();
-            });
-
-            canvas.addEventListener('click', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
-                const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
-                const clickedIdx = hitTestShape(clickX, clickY);
-                if (clickedIdx !== -1) {
-                    state.selectedIndex = clickedIdx;
-                    renderSubShapeControls();
-                    drawPoster();
-                }
-            });
-
-            $('btn-download').addEventListener('click', () => {
-                const tempOutline = state.showRedOutline;
-                state.showRedOutline = false;
-                drawPoster();
-
-                const link = document.createElement('a');
-                link.download = `hotel-gallery-poster.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-
-                state.showRedOutline = tempOutline;
-                drawPoster();
-            });
+            $('btn-undo').addEventListener('click', undo);
+            $('btn-download').addEventListener('click', downloadPng);
+            bindCanvasPointer();
         }
 
         // ===== ポスター描画 =====
-        function drawPoster() {
-            const width = canvas.width;
-            const height = canvas.height;
+        function drawPoster({ k = DISPLAY_K, exporting = false } = {}) {
+            if (!exporting) {
+                // 画面のキャンバスは2倍の解像度で持つ
+                if (canvas.width !== W * DISPLAY_K) { canvas.width = W * DISPLAY_K; canvas.height = H * DISPLAY_K; }
+                k = DISPLAY_K;
+            }
             const bg = getBgColor().hex;
-            const shapeColors = getShapeColors();
             const text = getTextColors();
 
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.setTransform(k, 0, 0, k, 0, 0);
 
-            // 背景：高級紙のような美しいマットグラデーション
-            const bgGradient = ctx.createLinearGradient(0, 0, width, height);
+            // 背景：高級紙のようなマットグラデーション
+            const bgGradient = ctx.createLinearGradient(0, 0, W, H);
             bgGradient.addColorStop(0, bg);
             bgGradient.addColorStop(1, adjustBrightness(bg, -8));
             ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillRect(0, 0, W, H);
 
             // 内側の極細ボーダー（額縁のエッジ）
             ctx.strokeStyle = mixHex(bg, text.main, 0.22);
             ctx.lineWidth = 1;
-            ctx.strokeRect(48, 48, width - 96, height - 96);
+            ctx.strokeRect(48, 48, W - 96, H - 96);
 
             const { centerX, centerY, baseSize } = getLayout();
 
@@ -877,119 +1315,90 @@
             ctx.arc(centerX, centerY, baseSize * 1.5, 0, Math.PI * 2);
             ctx.stroke();
 
-            // 各パーツ描画（半透明のレイヤーバランス）
-            state.shapeLayers.forEach((layer, idx) => {
-                const lx = centerX + layer.offsetX * state.scale;
-                const ly = centerY + layer.offsetY * state.scale;
-                const size = baseSize * layer.size;
-                const color = shapeColors[idx % shapeColors.length];
-
+            // 各図形（半透明で重ねる）
+            state.shapes.forEach(s => {
+                const g = shapeGeometry(s);
+                const color = getShapeHex(s);
                 ctx.save();
+                ctx.translate(g.cx, g.cy);
+                ctx.rotate(g.rot);
+                // 影の大きさは座標変換の影響を受けないので倍率を掛ける
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-                ctx.shadowBlur = 24;
-                ctx.shadowOffsetY = 10;
-                if (layer.type === 'double-circle') {
-                    drawDoubleCircle(lx, ly, size, color, mixHex(color, bg, 0.55), text.main);
+                ctx.shadowBlur = 24 * k;
+                ctx.shadowOffsetY = 10 * k;
+                if (s.type === 'double-circle') {
+                    drawDoubleCircle(g.r, color, mixHex(color, bg, 0.55), text.main);
                 } else {
                     ctx.fillStyle = color;
                     ctx.globalAlpha = 0.86;
-                    ctx.fill(shapePath(layer.type, lx, ly, size));
+                    ctx.fill(shapePath(s.type, g.r));
                 }
                 ctx.restore();
             });
 
-            // 選択中の図形を示す枠
-            if (state.showRedOutline) {
-                state.shapeLayers.forEach((layer, idx) => {
-                    const isSelected = (idx === state.selectedIndex);
-                    const lx = centerX + layer.offsetX * state.scale;
-                    const ly = centerY + layer.offsetY * state.scale;
-                    const size = baseSize * layer.size;
+            drawHotelTypography(text);
 
+            // 選択中の図形の枠とつまみ（画面だけ。保存・印刷には出さない）
+            const sel = selectedShape();
+            if (!exporting && sel) {
+                const g = shapeGeometry(sel);
+                const px = cssToDesign();
+                if (state.showGuide) {
                     ctx.save();
-                    ctx.strokeStyle = isSelected ? '#E11D48' : 'rgba(225, 29, 72, 0.35)';
-                    ctx.lineWidth = isSelected ? 2.5 : 1;
-                    ctx.setLineDash(isSelected ? [6, 4] : [3, 3]);
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, size + 16, 0, Math.PI * 2);
-                    ctx.stroke();
+                    ctx.translate(g.cx, g.cy);
+                    ctx.rotate(g.rot);
+                    ctx.strokeStyle = '#E11D48';
+                    ctx.lineWidth = 2.5 * px;
+                    ctx.setLineDash([8 * px, 5 * px]);
+                    const outline = shapePath(sel.type, g.r + 10 * px);
+                    ctx.stroke(outline);
                     ctx.restore();
-                });
-            }
-
-            drawHotelTypography(width, height, text);
-        }
-
-        // 図形の輪郭（描画とクリック判定の両方で使う）
-        function shapePath(type, x, y, radius) {
-            const p = new Path2D();
-            if (type === 'triangle') {
-                for (let i = 0; i < 3; i++) {
-                    const angle = (i * 120 - 90) * Math.PI / 180;
-                    const tx = x + radius * Math.cos(angle);
-                    const ty = y + radius * Math.sin(angle);
-                    if (i === 0) p.moveTo(tx, ty);
-                    else p.lineTo(tx, ty);
                 }
-                p.closePath();
-            } else if (type === 'double-circle') {
-                // 外側の輪の太さぶんを含めた円
-                p.arc(x, y, radius * 1.07, 0, Math.PI * 2);
-            } else if (type === 'rect') {
-                const side = radius * 1.4;
-                p.rect(x - side / 2, y - side / 2, side, side);
-            } else if (type === 'arch') {
-                const w = radius * 1.2;
-                const h = radius * 1.7;
-                p.arc(x, y - h / 4, w / 2, Math.PI, 0, false);
-                p.lineTo(x + w / 2, y + h / 2);
-                p.lineTo(x - w / 2, y + h / 2);
-                p.closePath();
-            } else if (type === 'wave') {
-                p.ellipse(x, y, radius * 1.3, radius * 0.65, Math.PI / 8, 0, Math.PI * 2);
+                const kp = knobPosition(sel);
+                const kr = 15 * px;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                ctx.shadowBlur = 6 * k;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.strokeStyle = '#1C1917';
+                ctx.lineWidth = 2.5 * px;
+                ctx.beginPath();
+                ctx.arc(kp.x, kp.y, kr, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowColor = 'transparent';
+                ctx.stroke();
+                // 斜めの矢印（大きさを変えられる印）
+                const a = kr * 0.45;
+                ctx.lineWidth = 2 * px;
+                ctx.beginPath();
+                ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x + a, kp.y + a);
+                ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x - a + a * 0.8, kp.y - a);
+                ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x - a, kp.y - a + a * 0.8);
+                ctx.moveTo(kp.x + a, kp.y + a); ctx.lineTo(kp.x + a - a * 0.8, kp.y + a);
+                ctx.moveTo(kp.x + a, kp.y + a); ctx.lineTo(kp.x + a, kp.y + a - a * 0.8);
+                ctx.stroke();
+                ctx.restore();
             }
-            return p;
         }
 
-        // 前面（後に描いた図形）から順に判定し、最初に当たった図形を返す
-        function hitTestShape(px, py) {
-            const { centerX, centerY, baseSize } = getLayout();
-            ctx.save();
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.lineWidth = 24; // 指でも選びやすいよう輪郭の外側にも少し余裕を持たせる
-            let found = -1;
-            for (let idx = state.shapeLayers.length - 1; idx >= 0; idx--) {
-                const layer = state.shapeLayers[idx];
-                const lx = centerX + layer.offsetX * state.scale;
-                const ly = centerY + layer.offsetY * state.scale;
-                const path = shapePath(layer.type, lx, ly, baseSize * layer.size);
-                if (ctx.isPointInPath(path, px, py) || ctx.isPointInStroke(path, px, py)) {
-                    found = idx;
-                    break;
-                }
-            }
-            ctx.restore();
-            return found;
-        }
-
-        function drawDoubleCircle(x, y, radius, outerColor, innerColor, accentColor) {
+        function drawDoubleCircle(radius, outerColor, innerColor, accentColor) {
             ctx.save();
             ctx.globalAlpha = 0.88;
             ctx.strokeStyle = outerColor;
             ctx.lineWidth = radius * 0.14;
             ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
             ctx.stroke();
 
             ctx.globalAlpha = 0.92;
             ctx.fillStyle = innerColor;
             ctx.beginPath();
-            ctx.arc(x, y, radius * 0.45, 0, Math.PI * 2);
+            ctx.arc(0, 0, radius * 0.45, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = accentColor;
             ctx.beginPath();
-            ctx.arc(x, y, radius * 0.12, 0, Math.PI * 2);
+            ctx.arc(0, 0, radius * 0.12, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
@@ -1031,7 +1440,7 @@
             ctx.textAlign = prevAlign;
         }
 
-        function drawHotelTypography(width, height, text) {
+        function drawHotelTypography(text) {
             ctx.save();
             const preset = PALETTE_DATA[state.mood][state.presetIndex] || PALETTE_DATA.calm[0];
 
@@ -1043,17 +1452,17 @@
             // メインタイトル
             ctx.fillStyle = text.main;
             ctx.font = '600 44px "Cinzel", "Shippori Mincho", serif';
-            fillSpacedText(state.title, 72, height - 205, 2);
+            fillSpacedText(state.title || 'ふたりのギャラリー', 72, H - 205, 2);
 
             // サブタイトル
             ctx.fillStyle = text.sub;
             ctx.font = '400 13px "Montserrat", sans-serif';
-            fillSpacedText(`PALETTE: ${preset.en}`, 72, height - 162, 1.5);
+            fillSpacedText(`PALETTE: ${preset.en}`, 72, H - 162, 1.5);
 
             // 下部カラーパレットスウォッチ
-            const barY = height - 110;
+            const barY = H - 110;
             const barHeight = 24;
-            const blockWidth = (width - 144) / state.palette.length;
+            const blockWidth = (W - 144) / state.palette.length;
             state.palette.forEach((c, idx) => {
                 ctx.fillStyle = c.hex;
                 ctx.fillRect(72 + idx * blockWidth, barY, blockWidth, barHeight);
@@ -1065,7 +1474,7 @@
             // フッタークレジット
             ctx.fillStyle = text.sub;
             ctx.font = '400 10px "Montserrat", monospace';
-            fillSpacedText(`HOTEL GALLERY COLLECTION © 2026`, width - 72, height - 42, 0, 'right');
+            fillSpacedText(`HOTEL GALLERY COLLECTION © 2026`, W - 72, H - 42, 0, 'right');
 
             ctx.restore();
         }
