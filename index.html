@@ -59,6 +59,15 @@
         input[type="color"]::-moz-color-swatch { border: 2px solid rgba(255,255,255,.35); border-radius: 12px; }
         #posterCanvas { touch-action: none; }
 
+        /* 印刷：ポスターだけを A4 に大きく印刷する */
+        #print-area { display: none; }
+        @page { size: A4 portrait; margin: 8mm; }
+        @media print {
+            body > *:not(#print-area) { display: none !important; }
+            body { background: #fff !important; min-height: 0 !important; display: block !important; }
+            #print-area { display: flex !important; justify-content: center; align-items: center; width: 100%; height: 280mm; }
+            #print-img { display: block; max-width: 100%; max-height: 280mm; width: auto; height: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
 
         /* 選んだ人の印（色だけでなく形でも区別できるようにする） */
         .owner-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; flex-shrink: 0; box-sizing: border-box; }
@@ -261,6 +270,9 @@
                         <button type="button" id="btn-undo" class="btn" disabled>
                             <i class="fa-solid fa-rotate-left"></i> ひとつ戻す
                         </button>
+                        <button type="button" id="btn-print" class="btn">
+                            <i class="fa-solid fa-print"></i> 印刷する
+                        </button>
                         <button type="button" id="btn-download" class="btn btn-primary">
                             <i class="fa-solid fa-download"></i> 画像で保存
                         </button>
@@ -305,6 +317,9 @@
         </div>
     </dialog>
     <input type="file" id="import-file" accept=".json,application/json" class="hidden">
+
+    <!-- 印刷用（画面には出さない） -->
+    <div id="print-area"><img id="print-img" alt="ポスター"></div>
 
     <!-- お知らせ（トースト） -->
     <div id="toast" role="status" aria-live="polite" class="fixed bottom-6 right-6 left-6 sm:left-auto bg-stone-800 border border-stone-500 text-stone-50 text-base px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50">
@@ -1094,6 +1109,7 @@
             bindEvents();
             bindWorksEvents();
             bindPhotoTool();
+            bindPrint();
             renderAll();
             await waitForFonts();
             drawPoster();
@@ -1767,6 +1783,25 @@
                 }
             });
             $('btn-photo-close').addEventListener('click', closePhoto);
+        }
+
+        // ===== 印刷（A4） =====
+        function preparePrintImage() {
+            // 3倍（2400×3393px）で描くと、A4 で約300dpi相当になる
+            $('print-img').src = renderPosterCanvas(3).toDataURL('image/png');
+        }
+        function printPoster() {
+            const img = $('print-img');
+            preparePrintImage();
+            const go = () => { setTimeout(() => window.print(), 50); };
+            if (img.complete && img.naturalWidth) go();
+            else img.onload = () => { img.onload = null; go(); };
+        }
+        function bindPrint() {
+            $('btn-print').addEventListener('click', printPoster);
+            // ブラウザのメニューから印刷したときもポスターだけが出るようにする
+            window.addEventListener('beforeprint', () => { if (!$('print-img').src) preparePrintImage(); });
+            window.addEventListener('afterprint', () => { $('print-img').removeAttribute('src'); });
         }
 
         // ===== イベント =====
