@@ -199,11 +199,25 @@
                     <div class="space-y-3" id="sub-shape-controls"></div>
                 </div>
 
-                <!-- タイトル -->
-                <div class="pt-4 border-t border-stone-700">
+            </div>
+
+            <!-- 5. ことば -->
+            <div class="panel">
+                <h2 class="step-title"><span class="step-no">05</span>ポスターにことばを添える<span class="step-en">Words</span></h2>
+                <div>
                     <label for="poster-title" class="label">作品のタイトル</label>
-                    <input type="text" id="poster-title" value="AESTHETIC SILENCE" class="field">
+                    <input type="text" id="poster-title" class="field font-mincho text-lg" maxlength="40" placeholder="例：縁側の午後">
+                    <p class="help mt-1">日本語でも英語でも入れられます。長いときは自動で小さくなり、2行までおさまります。</p>
                 </div>
+                <div>
+                    <label for="poster-message" class="label">ふたりのひとこと</label>
+                    <textarea id="poster-message" class="field font-mincho leading-relaxed" rows="3" maxlength="90" placeholder="例：祖母の家の縁側の色と、いまの街の色をならべました。"></textarea>
+                    <p class="help mt-1"><span id="message-count">0</span>／90文字。作品にこめた思いや、話したことを書きましょう。</p>
+                </div>
+                <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
+                    <input type="checkbox" id="show-swatch-labels" checked>
+                    ポスターの色見本の下に、色の名前と思い出をのせる
+                </label>
             </div>
         </section>
 
@@ -438,7 +452,9 @@
             mix: { aId: null, bId: null, ratio: 0.5, aManual: false, bManual: false },
             scale: 1.0,
             showGuide: false,
-            title: 'AESTHETIC SILENCE',
+            title: 'ふたりのギャラリー',
+            message: '',
+            showSwatchLabels: true,
             shapes: [],
             selectedId: null,
             lastOwner: 'both'
@@ -596,6 +612,8 @@
                 scale: state.scale,
                 showGuide: state.showGuide,
                 title: state.title,
+                message: state.message,
+                showSwatchLabels: state.showSwatchLabels,
                 shapes: state.shapes.map(s => ({ ...s }))
             };
         }
@@ -608,6 +626,8 @@
             state.scale = w.scale;
             state.showGuide = w.showGuide;
             state.title = w.title;
+            state.message = w.message || '';
+            state.showSwatchLabels = w.showSwatchLabels !== false;
             state.shapes = w.shapes.map(s => ({ ...s }));
             if (!selectedShape()) state.selectedId = null;
         }
@@ -640,7 +660,9 @@
                 document.fonts.load('600 44px "Cinzel"'),
                 document.fonts.load('400 13px "Montserrat"'),
                 document.fonts.load('500 11px "Montserrat"'),
-                document.fonts.load('600 44px "Shippori Mincho"', 'あ漢')
+                document.fonts.load('600 44px "Shippori Mincho"', 'あ漢'),
+                document.fonts.load('400 16px "Shippori Mincho"', 'あ漢'),
+                document.fonts.load('500 15px "Shippori Mincho"', 'あ漢')
             ];
             const timeout = new Promise(resolve => setTimeout(resolve, 3000));
             return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]).catch(() => {});
@@ -1187,9 +1209,12 @@
             });
         }
 
-        // ===== 05 ことば（タイトル） =====
+        // ===== 05 ことば =====
         function renderPosterFields() {
             $('poster-title').value = state.title;
+            $('poster-message').value = state.message;
+            $('message-count').textContent = [...state.message].length;
+            $('show-swatch-labels').checked = state.showSwatchLabels;
             $('shape-scale').value = state.scale;
             $('scale-value').textContent = `${state.scale.toFixed(1)}倍`;
             $('show-red-outline').checked = state.showGuide;
@@ -1270,6 +1295,19 @@
 
             $('show-red-outline').addEventListener('change', e => {
                 state.showGuide = e.target.checked;
+                requestDraw();
+                commit();
+            });
+
+            const message = $('poster-message');
+            message.addEventListener('input', e => {
+                state.message = e.target.value;
+                $('message-count').textContent = [...state.message].length;
+                requestDraw();
+            });
+            message.addEventListener('change', commit);
+            $('show-swatch-labels').addEventListener('change', e => {
+                state.showSwatchLabels = e.target.checked;
                 requestDraw();
                 commit();
             });
@@ -1440,41 +1478,223 @@
             ctx.textAlign = prevAlign;
         }
 
+        // ===== ポスターの文字組み =====
+        const MINCHO = '"Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif';
+        const hasJapanese = s => /[^\x00-\x7F]/.test(s);
+
+        // 日本語の追加字形（Google Fonts は文字ごとに分割配信）を先に読み込ませる。読み込み後は loadingdone で描き直される
+        const requestedGlyphs = new Set();
+        function ensureGlyphs(font, text) {
+            if (!document.fonts || !document.fonts.load || !text) return;
+            const key = font + '|' + text;
+            if (requestedGlyphs.has(key)) return;
+            requestedGlyphs.add(key);
+            document.fonts.load(font, text).catch(() => {});
+        }
+
+        // 折り返し：英語は単語単位、日本語は1文字単位。句読点や閉じかっこは行頭に来ないようにする
+        const NO_LINE_START = '、。，．・：；？！ー―…）」』】〕〉》’”ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ,.!?)';
+        function wrapText(text, maxWidth, spacing = 0, maxLines = Infinity) {
+            const tokens = String(text).replace(/\r/g, '').match(/[A-Za-z0-9'’\-]+[.,!?:;]*\s*|\n|\s+|./gu) || [];
+            const lines = [];
+            let line = '';
+            for (const tok of tokens) {
+                if (tok === '\n') { lines.push(line.trimEnd()); line = ''; continue; }
+                const candidate = line + tok;
+                if (line.trim() && measureSpaced(candidate.trimEnd(), spacing) > maxWidth) {
+                    if (NO_LINE_START.includes(tok[0])) {
+                        // 句読点などが行頭に来ないよう、直前の1文字といっしょに次の行へ送る
+                        const chars = [...line.trimEnd()];
+                        const last = chars.length > 1 ? chars.pop() : '';
+                        lines.push(chars.join(''));
+                        line = last + tok;
+                    } else {
+                        lines.push(line.trimEnd());
+                        line = tok.trimStart();
+                    }
+                } else {
+                    line = candidate;
+                }
+            }
+            if (line.trim() || !lines.length) lines.push(line.trimEnd());
+            if (lines.length > maxLines) {
+                const kept = lines.slice(0, maxLines);
+                kept[maxLines - 1] = truncateToWidth(kept[maxLines - 1] + lines[maxLines], maxWidth, spacing, true);
+                return kept;
+            }
+            return lines;
+        }
+        function truncateToWidth(text, maxWidth, spacing = 0, force = false) {
+            if (!force && measureSpaced(text, spacing) <= maxWidth) return text;
+            const chars = [...text];
+            while (chars.length && measureSpaced(chars.join('') + '…', spacing) > maxWidth) chars.pop();
+            return chars.join('') + '…';
+        }
+
+        // タイトル：大きい文字から試し、おさまる大きさを選ぶ（40px以上は1行、それより小さければ2行まで）
+        function titleFont(size, jp) {
+            return jp ? `600 ${size}px ${MINCHO}` : `600 ${size}px "Cinzel", ${MINCHO}`;
+        }
+        function layoutTitle(title, maxWidth) {
+            const jp = hasJapanese(title);
+            for (let size = 56; size >= 24; size -= 2) {
+                const font = titleFont(size, jp);
+                const spacing = jp ? size * 0.06 : 2;
+                ctx.font = font;
+                const lines = wrapText(title, maxWidth, spacing);
+                if (lines.length <= (size >= 40 ? 1 : 2)) {
+                    return { font, spacing, lines, lineHeight: size * 1.25 };
+                }
+            }
+            const font = titleFont(24, jp);
+            const spacing = jp ? 24 * 0.06 : 2;
+            ctx.font = font;
+            return { font, spacing, lines: wrapText(title, maxWidth, spacing, 2), lineHeight: 30 };
+        }
+
+        // 選んだ人の印：年長の方＝塗りつぶしの丸、若い方＝輪、ふたりで＝半分塗りの丸
+        function drawOwnerMark(x, y, owner, r, color) {
+            if (!['elder', 'young', 'both'].includes(owner)) return;
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(1, r * 0.35);
+            ctx.beginPath();
+            if (owner === 'elder') {
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (owner === 'young') {
+                ctx.arc(x, y, r - ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                ctx.arc(x, y, r - ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x, y, r, Math.PI / 2, Math.PI * 1.5);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
         function drawHotelTypography(text) {
             ctx.save();
+            ctx.textBaseline = 'alphabetic';
             const preset = PALETTE_DATA[state.mood][state.presetIndex] || PALETTE_DATA.calm[0];
+            const left = 72, right = W - 72, maxWidth = right - left;
+            const elderName = state.names.elder.trim(), youngName = state.names.young.trim();
+            const usedOwners = new Set([...state.palette.map(c => c.owner), ...state.shapes.map(s => s.owner)]);
 
             // 上部コレクション表記
             ctx.fillStyle = text.sub;
             ctx.font = '500 11px "Montserrat", sans-serif';
-            fillSpacedText(`COLLECTION NO. 0${state.presetIndex + 1} — HOTEL GALLERY EDITION`, 72, 90, 5);
+            fillSpacedText(`COLLECTION NO. 0${state.presetIndex + 1} — HOTEL GALLERY EDITION`, left, 90, 5);
 
-            // メインタイトル
-            ctx.fillStyle = text.main;
-            ctx.font = '600 44px "Cinzel", "Shippori Mincho", serif';
-            fillSpacedText(state.title || 'ふたりのギャラリー', 72, H - 205, 2);
-
-            // サブタイトル
-            ctx.fillStyle = text.sub;
-            ctx.font = '400 13px "Montserrat", sans-serif';
-            fillSpacedText(`PALETTE: ${preset.en}`, 72, H - 162, 1.5);
-
-            // 下部カラーパレットスウォッチ
-            const barY = H - 110;
-            const barHeight = 24;
-            const blockWidth = (W - 144) / state.palette.length;
-            state.palette.forEach((c, idx) => {
-                ctx.fillStyle = c.hex;
-                ctx.fillRect(72 + idx * blockWidth, barY, blockWidth, barHeight);
+            // --- 下から順に位置を決める ---
+            // フッター：つくった人
+            const footerY = H - 66;
+            const showArtists = elderName || youngName || usedOwners.has('elder') || usedOwners.has('young') || usedOwners.has('both');
+            if (showArtists) {
                 ctx.fillStyle = text.sub;
-                ctx.font = '400 9px "Montserrat", monospace';
-                fillSpacedText(c.hex, 72 + (idx + 0.5) * blockWidth, barY + barHeight + 16, 1, 'center');
+                ctx.font = '400 9px "Montserrat", sans-serif';
+                fillSpacedText('ARTISTS', left, footerY, 3);
+                let x = left + 70;
+                const people = [['elder', elderName || OWNERS.elder], ['young', youngName || OWNERS.young]];
+                people.forEach(([who, label], i) => {
+                    ctx.font = `500 15px ${MINCHO}`;
+                    ensureGlyphs(ctx.font, label);
+                    drawOwnerMark(x + 6, footerY - 5, who, 6, text.main);
+                    ctx.fillStyle = text.main;
+                    const shown = truncateToWidth(label, 170);
+                    fillSpacedText(shown, x + 18, footerY, 1);
+                    x += 18 + measureSpaced(shown, 1) + 16;
+                    if (i === 0) {
+                        ctx.fillStyle = text.sub;
+                        ctx.font = '300 14px "Montserrat", sans-serif';
+                        fillSpacedText('×', x, footerY, 0);
+                        x += 24;
+                    }
+                });
+                if (usedOwners.has('both')) {
+                    ctx.font = `400 12px ${MINCHO}`;
+                    drawOwnerMark(x + 6, footerY - 4, 'both', 5, text.sub);
+                    ctx.fillStyle = text.sub;
+                    fillSpacedText('ふたりで', x + 16, footerY, 1);
+                }
+            }
+            ctx.fillStyle = text.sub;
+            ctx.font = '400 9px "Montserrat", sans-serif';
+            fillSpacedText('© 2026 HOTEL GALLERY EDITION', right, H - 40, 1.5, 'right');
+
+            // 色見本（スウォッチ）と、その下の色の名前・思い出
+            const n = state.palette.length;
+            const blockWidth = maxWidth / n;
+            const anyMemory = state.palette.some(c => c.memory.trim());
+            const labelH = state.showSwatchLabels ? (anyMemory ? 48 : 20) : 14;
+            const barHeight = 22;
+            const barY = footerY - 34 - labelH - barHeight;
+            state.palette.forEach((c, i) => {
+                const x0 = left + i * blockWidth;
+                ctx.fillStyle = c.hex;
+                ctx.fillRect(x0, barY, blockWidth, barHeight);
+                const cx = x0 + blockWidth / 2;
+                const inner = blockWidth - 8;
+                if (state.showSwatchLabels) {
+                    // 色の名前（選んだ人の印つき）
+                    ctx.font = `600 ${n > 7 ? 11 : 12}px ${MINCHO}`;
+                    const name = c.name.trim() || c.hex;
+                    ensureGlyphs(ctx.font, name);
+                    const hasMark = ['elder', 'young', 'both'].includes(c.owner);
+                    const nameShown = truncateToWidth(name, inner - (hasMark ? 12 : 0));
+                    const nw = measureSpaced(nameShown, 0) + (hasMark ? 12 : 0);
+                    const nx = cx - nw / 2;
+                    if (hasMark) drawOwnerMark(nx + 4, barY + barHeight + 15, c.owner, 4, text.main);
+                    ctx.fillStyle = text.main;
+                    fillSpacedText(nameShown, nx + (hasMark ? 12 : 0), barY + barHeight + 19, 0);
+                    // 思い出（2行まで）
+                    if (c.memory.trim()) {
+                        ctx.font = `400 ${n > 7 ? 9 : 10}px ${MINCHO}`;
+                        ensureGlyphs(ctx.font, c.memory);
+                        ctx.fillStyle = text.sub;
+                        wrapText(c.memory.trim(), inner, 0, 2).forEach((ln, li) => {
+                            fillSpacedText(ln, cx, barY + barHeight + 35 + li * 14, 0, 'center');
+                        });
+                    }
+                } else {
+                    ctx.fillStyle = text.sub;
+                    ctx.font = '400 9px "Montserrat", monospace';
+                    fillSpacedText(c.hex, cx, barY + barHeight + 15, 1, 'center');
+                }
             });
 
-            // フッタークレジット
+            // ふたりのひとこと（3行まで）
+            let cursorY = barY - 30;
+            const message = state.message.trim();
+            if (message) {
+                ctx.font = `400 16px ${MINCHO}`;
+                ensureGlyphs(ctx.font, '「」' + message);
+                const lines = wrapText(`「${message}」`, maxWidth, 0.5, 3);
+                const lh = 27;
+                const top = cursorY - (lines.length - 1) * lh;
+                ctx.fillStyle = text.main;
+                lines.forEach((ln, i) => fillSpacedText(ln, left, top + i * lh, 0.5));
+                cursorY = top - lh - 8;
+            }
+
+            // サブタイトル（たたき台の配色名と色の数）
             ctx.fillStyle = text.sub;
-            ctx.font = '400 10px "Montserrat", monospace';
-            fillSpacedText(`HOTEL GALLERY COLLECTION © 2026`, W - 72, H - 42, 0, 'right');
+            ctx.font = '400 12px "Montserrat", sans-serif';
+            fillSpacedText(`BASED ON “${preset.en.toUpperCase()}”  /  ${n} COLORS`, left, cursorY, 1.5);
+            cursorY -= 26;
+
+            // タイトル
+            const title = state.title.trim() || 'ふたりのギャラリー';
+            const tl = layoutTitle(title, maxWidth);
+            ctx.font = tl.font;
+            ensureGlyphs(tl.font, title);
+            ctx.fillStyle = text.main;
+            const titleTop = cursorY - (tl.lines.length - 1) * tl.lineHeight;
+            tl.lines.forEach((ln, i) => fillSpacedText(ln, left, titleTop + i * tl.lineHeight, tl.spacing));
 
             ctx.restore();
         }
