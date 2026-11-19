@@ -3,152 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Curated Mood Palette & Hotel Art Poster</title>
+    <title>ふたりでつくる ホテルギャラリー・ポスター</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mincho: ['"Shippori Mincho"', '"Hiragino Mincho ProN"', '"Yu Mincho"', 'serif'],
+                        cinzel: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <!-- Google Fonts（BIZ UDPゴシック：読みやすさに配慮したUDフォント／しっぽり明朝：見出し・ポスターの和文） -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Cinzel:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        html { font-size: 17px; }
         body {
-            font-family: 'Montserrat', 'Shippori Mincho', sans-serif;
+            font-family: 'BIZ UDPGothic', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            line-height: 1.7;
         }
-        .font-cinzel {
-            font-family: 'Cinzel', serif;
+
+        /* スライダー：つまみを大きく、溝を太くして操作しやすく */
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 36px; background: transparent; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 8px; border-radius: 999px; background: #57534e;
+        }
+        input[type="range"]::-moz-range-track {
+            height: 8px; border-radius: 999px; background: #57534e;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 30px; height: 30px; margin-top: -11px; border-radius: 50%;
+            background: #f5f5f4; border: 3px solid #a8a29e; box-shadow: 0 2px 6px rgba(0,0,0,.5);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: #f5f5f4; border: 3px solid #a8a29e; box-shadow: 0 2px 6px rgba(0,0,0,.5);
+        }
+        input[type="range"]:focus-visible { outline: 2px solid #fde68a; outline-offset: 2px; border-radius: 8px; }
+        input[type="checkbox"] { width: 24px; height: 24px; accent-color: #d6d3d1; flex-shrink: 0; }
+        input[type="color"] { -webkit-appearance: none; appearance: none; border: none; padding: 0; background: none; cursor: pointer; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,.35); border-radius: 12px; }
+        input[type="color"]::-moz-color-swatch { border: 2px solid rgba(255,255,255,.35); border-radius: 12px; }
+        #posterCanvas { touch-action: none; }
+    </style>
+    <style type="text/tailwindcss">
+        @layer components {
+            .panel { @apply bg-stone-900/80 p-5 sm:p-6 rounded-2xl border border-stone-700/70 shadow-2xl space-y-5; }
+            .step-title { @apply flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mincho text-xl font-semibold text-stone-50 leading-snug; }
+            .step-no { @apply font-cinzel text-base text-amber-200 tracking-widest; }
+            .step-en { @apply font-cinzel text-xs tracking-[0.2em] text-stone-400 ml-auto; }
+            .help { @apply text-base text-stone-300 leading-relaxed; }
+            .btn { @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-4 py-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 text-base leading-tight hover:bg-stone-700 hover:border-stone-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 disabled:opacity-40 disabled:cursor-not-allowed; }
+            .btn-primary { @apply bg-stone-100 text-stone-950 border-stone-100 font-bold hover:bg-white hover:border-white; }
+            .btn-ghost { @apply bg-transparent border-transparent hover:bg-stone-800 hover:border-stone-600; }
+            .btn-danger { @apply text-rose-200 border-rose-900/70 hover:bg-rose-950 hover:border-rose-700; }
+            .btn-on { @apply bg-amber-100 text-stone-950 border-amber-100 font-bold hover:bg-amber-50; }
+            .field { @apply w-full px-4 py-3 bg-stone-950 border border-stone-600 rounded-xl text-base text-stone-50 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-200/70 focus:border-stone-400; }
+            .label { @apply block text-base font-bold text-stone-100 mb-1.5; }
+            .subbox { @apply bg-stone-950/60 p-4 rounded-xl border border-stone-700; }
         }
     </style>
 </head>
-<body class="bg-stone-950 text-stone-200 min-h-screen flex flex-col antialiased selection:bg-stone-700 selection:text-white">
+<body class="bg-stone-950 text-stone-100 min-h-screen flex flex-col antialiased selection:bg-stone-600 selection:text-white">
 
-    <!-- ヘッダー：ミニマルで洗練された印象に -->
-    <header class="bg-stone-950/90 backdrop-blur-md border-b border-stone-800 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+    <!-- ヘッダー -->
+    <header class="bg-stone-950/95 backdrop-blur-md border-b border-stone-800 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 min-h-[80px] flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-4">
-                <div class="w-9 h-9 rounded-full border border-stone-700 flex items-center justify-center text-stone-300">
-                    <i class="fa-solid fa-feather text-xs"></i>
+                <div class="w-11 h-11 rounded-full border border-stone-600 flex items-center justify-center text-amber-100">
+                    <i class="fa-solid fa-feather"></i>
                 </div>
                 <div>
-                    <h1 class="font-cinzel tracking-[0.25em] text-xs sm:text-sm font-medium text-stone-100">HOTEL GALLERY EDITION</h1>
-                    <p class="text-[10px] tracking-widest text-stone-400">CURATED INTERIOR ART & PALETTE</p>
+                    <h1 class="font-mincho text-lg sm:text-xl font-semibold text-stone-50 leading-tight">ふたりでつくる ホテルギャラリー・ポスター</h1>
+                    <p class="font-cinzel text-xs tracking-[0.25em] text-stone-400">HOTEL GALLERY EDITION</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 text-xs font-light text-stone-400 bg-stone-900 px-4 py-2 rounded-full border border-stone-800">
-                <i class="fa-solid fa-circle-dot text-[8px] text-stone-400"></i>
-                <span>カラーをタップしてHEXをコピー</span>
-            </div>
+            <div id="header-actions" class="flex flex-wrap items-center gap-2"></div>
         </div>
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-6 lg:px-12 py-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        
-        <!-- コントロールパネル (左側 5カラム) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-12 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- 操作パネル（左側） -->
         <section class="lg:col-span-5 space-y-6">
-            
-            <!-- 1. 気分選択 (ホテルの空間美を意識した命名と配色) -->
-            <div class="bg-stone-900/60 backdrop-blur-sm p-6 rounded-2xl border border-stone-800 shadow-2xl space-y-4">
-                <h2 class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 01. Atmosphere & Tone
-                </h2>
+
+            <!-- 1. 雰囲気（たたき台の配色） -->
+            <div class="panel">
+                <h2 class="step-title"><span class="step-no">01</span>雰囲気をえらぶ<span class="step-en">Atmosphere</span></h2>
                 <div class="grid grid-cols-2 gap-3" id="mood-selector">
-                    <button data-mood="calm" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-600 bg-stone-800/80 text-stone-100 text-xs tracking-wider transition-all shadow-sm">
-                        <span class="flex items-center gap-2 font-medium">静寂・コンクリート (Calm)</span>
-                        <i class="fa-solid fa-check text-stone-300 text-xs check-icon"></i>
+                    <button data-mood="calm" class="mood-btn btn btn-on justify-between text-left">
+                        <span>静寂・コンクリート</span><i class="fa-solid fa-check check-icon"></i>
                     </button>
-                    <button data-mood="energetic" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all">
-                        <span class="flex items-center gap-2 font-medium">モダン・テラコッタ (Vivid)</span>
-                        <i class="fa-solid fa-check text-stone-600 text-xs check-icon hidden"></i>
+                    <button data-mood="energetic" class="mood-btn btn justify-between text-left">
+                        <span>モダン・テラコッタ</span><i class="fa-solid fa-check check-icon hidden"></i>
                     </button>
-                    <button data-mood="luxury" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all">
-                        <span class="flex items-center gap-2 font-medium">真鍮・ダークオーク (Luxury)</span>
-                        <i class="fa-solid fa-check text-stone-600 text-xs check-icon hidden"></i>
+                    <button data-mood="luxury" class="mood-btn btn justify-between text-left">
+                        <span>真鍮・ダークオーク</span><i class="fa-solid fa-check check-icon hidden"></i>
                     </button>
-                    <button data-mood="natural" class="mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all">
-                        <span class="flex items-center gap-2 font-medium">白木・リネン (Earth)</span>
-                        <i class="fa-solid fa-check text-stone-600 text-xs check-icon hidden"></i>
+                    <button data-mood="natural" class="mood-btn btn justify-between text-left">
+                        <span>白木・リネン</span><i class="fa-solid fa-check check-icon hidden"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- 2. カラーパレット表示リスト -->
-            <div class="bg-stone-900/60 backdrop-blur-sm p-6 rounded-2xl border border-stone-800 shadow-2xl space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 02. Curated Swatches
-                    </h2>
-                    <button id="btn-shuffle-palette" class="text-xs text-stone-300 hover:text-white tracking-wider font-light flex items-center gap-2 bg-stone-800 hover:bg-stone-700 px-3.5 py-1.5 rounded-lg transition-colors border border-stone-700">
-                        <i class="fa-solid fa-rotate text-[10px]"></i> バリエーション変更
+            <!-- 2. 色 -->
+            <div class="panel">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="step-title"><span class="step-no">02</span>色をえらぶ<span class="step-en sr-only">Swatches</span></h2>
+                    <button id="btn-shuffle-palette" class="btn btn-sm">
+                        <i class="fa-solid fa-rotate"></i> 別の配色にする
                     </button>
                 </div>
-                
                 <div id="palette-list" class="space-y-2.5"></div>
             </div>
 
-            <!-- 3. 形状＆個別カスタマイズ -->
-            <div class="bg-stone-900/60 backdrop-blur-sm p-6 rounded-2xl border border-stone-800 shadow-2xl space-y-5">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span> 03. Composition & Shapes
-                    </h2>
-                    <label class="flex items-center gap-2 text-xs text-stone-400 font-light cursor-pointer">
-                        <input type="checkbox" id="show-red-outline" class="rounded accent-stone-500 bg-stone-950 border-stone-700">
+            <!-- 3. 形 -->
+            <div class="panel">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="step-title"><span class="step-no">03</span>形をくみあわせる<span class="step-en sr-only">Shapes</span></h2>
+                    <label class="flex items-center gap-2 text-base text-stone-200 cursor-pointer min-h-[48px]">
+                        <input type="checkbox" id="show-red-outline">
                         選択中の図形を示す枠
                     </label>
                 </div>
 
-                <!-- 全体スケール -->
-                <div class="space-y-2 bg-stone-950/50 p-3.5 rounded-xl border border-stone-800">
-                    <div class="flex justify-between items-center text-xs">
-                        <label for="shape-scale" class="font-medium text-stone-300 tracking-wider">全体のバランス倍率</label>
-                        <span id="scale-value" class="font-mono text-stone-400 bg-stone-900 px-2 py-0.5 rounded border border-stone-800">1.0x</span>
+                <!-- 全体の大きさ -->
+                <div class="subbox space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label for="shape-scale" class="font-bold text-stone-100">全体の大きさ</label>
+                        <span id="scale-value" class="font-mono text-stone-200 bg-stone-900 px-2 py-0.5 rounded border border-stone-700">1.0倍</span>
                     </div>
-                    <input type="range" id="shape-scale" min="0.5" max="1.6" step="0.1" value="1.0" class="w-full accent-stone-400 cursor-pointer">
+                    <input type="range" id="shape-scale" min="0.5" max="1.6" step="0.1" value="1.0">
                 </div>
 
-                <!-- 各パーツ設定 -->
-                <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1" id="sub-shape-controls"></div>
+                <!-- 図形ごとの設定 -->
+                <div class="space-y-3" id="sub-shape-controls"></div>
 
-                <!-- ポスターテキスト変更 -->
-                <div class="space-y-2 pt-3 border-t border-stone-800">
-                    <label for="poster-title" class="text-xs font-medium text-stone-400 tracking-wider">ギャラリータイトル（英字推奨）</label>
-                    <input type="text" id="poster-title" value="AESTHETIC SILENCE" class="w-full px-3.5 py-2.5 bg-stone-950 border border-stone-800 rounded-xl text-xs text-stone-100 tracking-widest focus:outline-none focus:ring-1 focus:ring-stone-600 focus:border-stone-600 font-cinzel">
+                <!-- タイトル -->
+                <div class="pt-4 border-t border-stone-700">
+                    <label for="poster-title" class="label">作品のタイトル</label>
+                    <input type="text" id="poster-title" value="AESTHETIC SILENCE" class="field">
                 </div>
             </div>
         </section>
 
-        <!-- Canvas＆プレビュー表示 (右側 7カラム) -->
-        <section class="lg:col-span-7 flex flex-col items-center">
-            <div class="w-full bg-stone-900/60 backdrop-blur-sm p-6 lg:p-8 rounded-2xl border border-stone-800 shadow-2xl flex flex-col items-center space-y-5">
-                
-                <div class="w-full flex items-center justify-between">
-                    <span class="text-xs font-cinzel tracking-widest text-stone-400 uppercase flex items-center gap-2">
-                        <i class="fa-solid fa-image text-stone-400"></i> Gallery Frame Preview
-                    </span>
-                    <button id="btn-download" class="text-xs bg-stone-100 hover:bg-white text-stone-950 font-medium tracking-widest px-5 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-2">
-                        <i class="fa-solid fa-download"></i> 高解像度保存 (PNG)
-                    </button>
+        <!-- ポスターのプレビュー（右側） -->
+        <section class="lg:col-span-7 lg:sticky lg:top-28 flex flex-col items-center">
+            <div class="w-full panel flex flex-col items-center">
+
+                <div class="w-full flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="step-title"><i class="fa-solid fa-image text-amber-200 text-base"></i>できあがり<span class="step-en">Gallery Preview</span></h2>
+                    <div id="preview-actions" class="flex flex-wrap gap-2">
+                        <button id="btn-download" class="btn btn-primary">
+                            <i class="fa-solid fa-download"></i> 画像で保存
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Canvas コンテナ：額縁のような重厚な背景 -->
-                <div class="w-full flex justify-center items-center bg-[#0a0a0a] p-6 lg:p-8 rounded-2xl border border-stone-800/80 overflow-hidden shadow-2xl relative">
-                    <div class="absolute inset-2 border border-stone-800/40 pointer-events-none rounded-xl"></div>
-                    <canvas id="posterCanvas" class="max-w-full h-auto rounded shadow-2xl cursor-crosshair" width="800" height="1131"></canvas>
+                <!-- 額縁のような背景 -->
+                <div class="w-full flex justify-center items-center bg-[#0a0a0a] p-4 sm:p-6 rounded-2xl border border-stone-800 overflow-hidden shadow-2xl relative">
+                    <div class="absolute inset-2 border border-stone-800/60 pointer-events-none rounded-xl"></div>
+                    <canvas id="posterCanvas" class="max-w-full h-auto rounded shadow-2xl cursor-pointer" width="800" height="1131" aria-label="ポスターのプレビュー"></canvas>
                 </div>
 
-                <p class="text-[11px] text-stone-400 text-center tracking-wider font-light">
-                    ホテルや建築ギャラリーのエントランスに飾られる、洗練された大理石・ニュアンスカラーのポスターです。図形をクリックして位置・大きさを調整できます。
+                <p id="canvas-help" class="help text-center">
+                    図形をタップすると、その図形を選べます。
                 </p>
             </div>
         </section>
 
     </main>
 
-    <!-- コピートースト通知 -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-stone-900 border border-stone-700 text-stone-200 text-xs tracking-wider px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50">
-        <i class="fa-solid fa-check text-stone-300 text-sm"></i>
+    <!-- お知らせ（トースト） -->
+    <div id="toast" role="status" aria-live="polite" class="fixed bottom-6 right-6 left-6 sm:left-auto bg-stone-800 border border-stone-500 text-stone-50 text-base px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50">
+        <i class="fa-solid fa-check text-amber-200"></i>
         <span id="toast-message">カラーコードをコピーしました</span>
     </div>
 
@@ -322,24 +364,18 @@
 
             colors.forEach((color) => {
                 const item = document.createElement('div');
-                item.className = 'group relative flex items-center justify-between p-3 rounded-xl border border-stone-800 hover:border-stone-600 bg-stone-950/60 hover:bg-stone-900 transition-all cursor-pointer';
-                item.setAttribute('title', 'タップしてカラーコードをコピー');
-                
+                item.className = 'flex items-center justify-between gap-3 p-3 rounded-xl border border-stone-700 bg-stone-950/60';
                 item.innerHTML = `
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-8 h-8 rounded-lg shadow-inner border border-white/10 flex-shrink-0 transition-transform group-hover:scale-105" style="background-color: ${color.hex}"></div>
-                        <div>
-                            <p class="text-xs font-medium text-stone-200 tracking-wide">${color.name}</p>
-                            <p class="text-[11px] font-mono text-stone-400 tracking-wider">${color.hex}</p>
+                    <div class="flex items-center gap-4 min-w-0">
+                        <div class="w-12 h-12 rounded-lg border border-white/20 flex-shrink-0" style="background-color: ${color.hex}"></div>
+                        <div class="min-w-0">
+                            <p class="text-base font-bold text-stone-50">${color.name}</p>
+                            <p class="text-sm font-mono text-stone-300">${color.hex}</p>
                         </div>
                     </div>
-                    <button class="text-xs text-stone-400 group-hover:text-stone-200 font-light px-3 py-1.5 rounded-md group-hover:bg-stone-800 transition-colors flex items-center gap-1.5">
-                        <i class="fa-regular fa-copy text-[10px]"></i>
-                        <span class="text-[11px]">コピー</span>
-                    </button>
+                    <button type="button" class="btn btn-sm btn-ghost copy-btn"><i class="fa-regular fa-copy"></i>コピー</button>
                 `;
-
-                item.addEventListener('click', () => copyToClipboard(color.hex));
+                item.querySelector('.copy-btn').addEventListener('click', () => copyToClipboard(color.hex));
                 paletteListContainer.appendChild(item);
             });
         }
@@ -352,43 +388,33 @@
                 { id: 'arch', label: 'アーチ' },
                 { id: 'triangle', label: '三角' },
                 { id: 'rect', label: '四角' },
-                { id: 'wave', label: '波形' }
+                { id: 'wave', label: 'だ円' }
             ];
 
             state.shapeLayers.forEach((layer, idx) => {
                 const isSelected = (state.selectedIndex === idx);
                 const wrapper = document.createElement('div');
-                wrapper.className = `p-3.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'border-stone-500 bg-stone-800/60 shadow-lg' : 'border-stone-800 bg-stone-950/40 hover:border-stone-700'}`;
-                
+                wrapper.className = `p-4 rounded-xl border-2 transition-colors cursor-pointer ${isSelected ? 'border-amber-200/80 bg-stone-800/70' : 'border-stone-700 bg-stone-950/40 hover:border-stone-500'}`;
+
                 let typeButtonsHtml = '';
                 shapeTypes.forEach(st => {
                     const active = layer.type === st.id;
-                    typeButtonsHtml += `<button type="button" data-idx="${idx}" data-shape-type="${st.id}" class="layer-type-btn px-2 py-1 rounded-md text-[10px] tracking-wider transition-all ${active ? 'bg-stone-200 text-stone-950 font-medium shadow' : 'text-stone-400 hover:text-stone-200'}">${st.label}</button>`;
+                    typeButtonsHtml += `<button type="button" data-idx="${idx}" data-shape-type="${st.id}" class="layer-type-btn btn btn-sm ${active ? 'btn-on' : ''}">${st.label}</button>`;
                 });
 
                 wrapper.innerHTML = `
-                    <div class="flex items-center justify-between mb-2.5">
-                        <span class="font-medium text-xs ${isSelected ? 'text-stone-100' : 'text-stone-300'} flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-stone-300 ring-2 ring-stone-600' : 'bg-stone-700'}"></span>
-                            レイヤー #${idx + 1} ${isSelected ? '(選択中)' : ''}
-                        </span>
-                        <div class="flex flex-wrap gap-1 bg-stone-900 p-0.5 rounded-lg border border-stone-800">
-                            ${typeButtonsHtml}
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2.5 text-[11px]">
-                        <div class="space-y-1">
-                            <label class="text-stone-400 font-light">サイズ</label>
-                            <input type="range" min="0.3" max="2.0" step="0.05" value="${layer.size}" data-idx="${idx}" data-type="size" class="param-input w-full accent-stone-400 cursor-pointer">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-stone-400 font-light">X座標</label>
-                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetX}" data-idx="${idx}" data-type="offsetX" class="param-input w-full accent-stone-400 cursor-pointer">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-stone-400 font-light">Y座標</label>
-                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetY}" data-idx="${idx}" data-type="offsetY" class="param-input w-full accent-stone-400 cursor-pointer">
-                        </div>
+                    <p class="font-bold text-base text-stone-50 mb-2">図形 ${idx + 1} ${isSelected ? '<span class="text-amber-200">（選択中）</span>' : ''}</p>
+                    <div class="flex flex-wrap gap-2 mb-3">${typeButtonsHtml}</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 text-base">
+                        <label class="block text-stone-200">大きさ
+                            <input type="range" min="0.3" max="2.0" step="0.05" value="${layer.size}" data-idx="${idx}" data-type="size" class="param-input">
+                        </label>
+                        <label class="block text-stone-200">左右の位置
+                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetX}" data-idx="${idx}" data-type="offsetX" class="param-input">
+                        </label>
+                        <label class="block text-stone-200">上下の位置
+                            <input type="range" min="-160" max="160" step="5" value="${layer.offsetY}" data-idx="${idx}" data-type="offsetY" class="param-input">
+                        </label>
                     </div>
                 `;
 
@@ -467,10 +493,10 @@
             moodButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     moodButtons.forEach(b => {
-                        b.className = 'mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-800 hover:border-stone-700 bg-stone-900/40 text-stone-400 text-xs tracking-wider transition-all';
+                        b.classList.remove('btn-on');
                         b.querySelector('.check-icon').classList.add('hidden');
                     });
-                    btn.className = 'mood-btn flex items-center justify-between p-4 rounded-xl border border-stone-600 bg-stone-800/80 text-stone-100 text-xs tracking-wider transition-all shadow-sm';
+                    btn.classList.add('btn-on');
                     btn.querySelector('.check-icon').classList.remove('hidden');
 
                     state.mood = btn.getAttribute('data-mood');
@@ -489,7 +515,7 @@
 
             shapeScaleInput.addEventListener('input', (e) => {
                 state.scale = parseFloat(e.target.value);
-                scaleValueDisplay.textContent = `${state.scale.toFixed(1)}x`;
+                scaleValueDisplay.textContent = `${state.scale.toFixed(1)}倍`;
                 drawPoster();
             });
 
@@ -499,7 +525,7 @@
             });
 
             posterTitleInput.addEventListener('input', (e) => {
-                state.title = e.target.value.toUpperCase() || 'HOTEL GALLERY';
+                state.title = e.target.value || "ふたりのギャラリー";
                 drawPoster();
             });
 
