@@ -59,6 +59,7 @@
         input[type="color"]::-moz-color-swatch { border: 2px solid rgba(255,255,255,.35); border-radius: 12px; }
         #posterCanvas { touch-action: none; }
 
+
         /* 選んだ人の印（色だけでなく形でも区別できるようにする） */
         .owner-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; flex-shrink: 0; box-sizing: border-box; }
         .owner-elder { background: #f2c879; }
@@ -143,6 +144,32 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button type="button" id="btn-add-elder" class="btn"><i class="fa-solid fa-plus"></i><span class="owner-dot owner-elder"></span><span><span data-owner-label="elder">年長の方</span>の色を足す</span></button>
                     <button type="button" id="btn-add-young" class="btn"><i class="fa-solid fa-plus"></i><span class="owner-dot owner-young"></span><span><span data-owner-label="young">若い方</span>の色を足す</span></button>
+                </div>
+
+                <!-- 写真から色をひろう -->
+                <div class="subbox space-y-4" id="photo-tool">
+                    <h3 class="font-mincho text-lg font-semibold text-stone-50"><i class="fa-regular fa-image text-amber-200 mr-1"></i>写真から色をひろう</h3>
+                    <p class="help">思い出の写真を開いて、気になるところをタップすると、その色をパレットに足せます。写真はこの端末の中だけで使い、どこにも送りません。</p>
+                    <button type="button" id="btn-photo" class="btn w-full"><i class="fa-solid fa-camera"></i>写真をえらぶ</button>
+                    <input type="file" id="photo-file" accept="image/*" class="hidden">
+                    <div id="photo-area" class="hidden space-y-3">
+                        <canvas id="photo-canvas" class="w-full h-auto rounded-lg border border-stone-600 cursor-crosshair" style="touch-action: none;" aria-label="写真。タップした場所の色をひろいます"></canvas>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div id="photo-swatch" class="w-16 h-16 rounded-xl border-2 border-white/30 flex-shrink-0"></div>
+                            <div class="flex-1 min-w-[10em]">
+                                <p class="text-base text-stone-100">ひろった色 <span id="photo-hex" class="font-mono text-stone-300"></span></p>
+                                <p class="text-sm text-stone-300">写真の上を指でなぞると、色が変わります。</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-base text-stone-300 mr-1">えらんだ人</span>
+                            <div id="photo-owner" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" id="btn-add-photo-color" class="btn btn-primary flex-1"><i class="fa-solid fa-plus"></i>この色をパレットに足す</button>
+                            <button type="button" id="btn-photo-close" class="btn"><i class="fa-solid fa-xmark"></i>写真を閉じる</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ふたりの色をまぜる -->
@@ -1066,6 +1093,7 @@
             restoreOnStartup(); // 前回の作品があれば開く
             bindEvents();
             bindWorksEvents();
+            bindPhotoTool();
             renderAll();
             await waitForFonts();
             drawPoster();
@@ -1633,6 +1661,112 @@
             link.click();
             link.remove();
             showToast('画像を保存しました');
+        }
+
+        // ===== 写真から色をひろう（端末の中だけで処理し、送信はしない） =====
+        const photo = { img: null, picked: null, point: null, owner: 'elder' };
+        function renderPhotoOwner() {
+            $('photo-owner').innerHTML = ownerButtons(photo.owner, 'photo-owner-btn');
+            document.querySelectorAll('.photo-owner-btn').forEach(btn => btn.addEventListener('click', () => {
+                photo.owner = btn.dataset.owner;
+                renderPhotoOwner();
+            }));
+        }
+        function drawPhoto() {
+            const c = $('photo-canvas');
+            const pctx = c.getContext('2d');
+            pctx.drawImage(photo.img, 0, 0, c.width, c.height);
+            if (photo.point) {
+                // ひろった場所に印をつける
+                const r = Math.max(10, c.width / 40);
+                pctx.lineWidth = Math.max(2, r / 4);
+                pctx.strokeStyle = '#FFFFFF';
+                pctx.beginPath(); pctx.arc(photo.point.x, photo.point.y, r, 0, Math.PI * 2); pctx.stroke();
+                pctx.lineWidth = Math.max(1, r / 8);
+                pctx.strokeStyle = '#000000';
+                pctx.beginPath(); pctx.arc(photo.point.x, photo.point.y, r + pctx.lineWidth * 2, 0, Math.PI * 2); pctx.stroke();
+            }
+        }
+        function pickPhotoColor(e) {
+            const c = $('photo-canvas');
+            const rect = c.getBoundingClientRect();
+            const x = Math.round((e.clientX - rect.left) * c.width / rect.width);
+            const y = Math.round((e.clientY - rect.top) * c.height / rect.height);
+            if (x < 0 || y < 0 || x >= c.width || y >= c.height) return;
+            // 印を描く前の写真から、周りの数ピクセルの平均をとる
+            const pctx = c.getContext('2d');
+            pctx.drawImage(photo.img, 0, 0, c.width, c.height);
+            const s = 3;
+            const x0 = Math.max(0, x - s), y0 = Math.max(0, y - s);
+            const data = pctx.getImageData(x0, y0, Math.min(c.width - x0, s * 2 + 1), Math.min(c.height - y0, s * 2 + 1)).data;
+            let r = 0, g = 0, b = 0, n = 0;
+            for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; n++; }
+            photo.picked = rgbToHex({ r: r / n, g: g / n, b: b / n });
+            photo.point = { x, y };
+            drawPhoto();
+            $('photo-swatch').style.background = photo.picked;
+            $('photo-hex').textContent = photo.picked;
+            $('btn-add-photo-color').disabled = state.palette.length >= MAX_COLORS;
+        }
+        function loadPhoto(file) {
+            if (!file || !/^image\//.test(file.type)) { showToast('写真（画像）のファイルをえらんでください'); return; }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const c = $('photo-canvas');
+                    const max = 1200;
+                    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+                    c.width = Math.max(1, Math.round(img.naturalWidth * k));
+                    c.height = Math.max(1, Math.round(img.naturalHeight * k));
+                    photo.img = img;
+                    photo.point = null;
+                    photo.picked = null;
+                    $('photo-area').classList.remove('hidden');
+                    drawPhoto();
+                    $('photo-swatch').style.background = 'transparent';
+                    $('photo-hex').textContent = '（写真をタップしてください）';
+                    $('btn-add-photo-color').disabled = true;
+                    renderPhotoOwner();
+                    $('photo-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+                img.onerror = () => showToast('この写真は開けませんでした');
+                img.src = reader.result;
+            };
+            reader.onerror = () => showToast('この写真は開けませんでした');
+            reader.readAsDataURL(file);
+        }
+        function closePhoto() {
+            photo.img = null;
+            photo.picked = null;
+            $('photo-area').classList.add('hidden');
+            const c = $('photo-canvas');
+            c.width = c.height = 1;
+        }
+        function bindPhotoTool() {
+            $('btn-photo').addEventListener('click', () => $('photo-file').click());
+            $('photo-file').addEventListener('change', e => {
+                const file = e.target.files && e.target.files[0];
+                e.target.value = '';
+                loadPhoto(file);
+            });
+            const c = $('photo-canvas');
+            let picking = false;
+            c.addEventListener('pointerdown', e => {
+                if (!photo.img) return;
+                picking = true;
+                try { c.setPointerCapture(e.pointerId); } catch (err) {}
+                pickPhotoColor(e);
+            });
+            c.addEventListener('pointermove', e => { if (picking && photo.img) pickPhotoColor(e); });
+            ['pointerup', 'pointercancel'].forEach(t => c.addEventListener(t, () => { picking = false; }));
+            $('btn-add-photo-color').addEventListener('click', () => {
+                if (!photo.picked) return;
+                if (addColor({ hex: photo.picked, name: '', memory: '写真からひろった色', owner: photo.owner })) {
+                    showToast('写真の色をパレットに足しました。名前をつけてみましょう');
+                }
+            });
+            $('btn-photo-close').addEventListener('click', closePhoto);
         }
 
         // ===== イベント =====
