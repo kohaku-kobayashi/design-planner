@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ふたりでつくる ホテルギャラリー・ポスター</title>
+    <title>ホテルギャラリー・ポスター</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -69,12 +69,6 @@
             #print-img { display: block; max-width: 100%; max-height: 280mm; width: auto; height: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
 
-        /* 選んだ人の印（色だけでなく形でも区別できるようにする） */
-        .owner-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; flex-shrink: 0; box-sizing: border-box; }
-        .owner-elder { background: #f2c879; }
-        .owner-young { border: 3px solid #9cc8e8; }
-        .owner-both  { background: linear-gradient(90deg, #f2c879 50%, transparent 50%); border: 2px solid #9cc8e8; }
-        .owner-base  { border: 2px dashed #a8a29e; }
     </style>
     <style type="text/tailwindcss">
         @layer components {
@@ -104,7 +98,7 @@
                     <i class="fa-solid fa-feather"></i>
                 </div>
                 <div>
-                    <h1 class="font-mincho text-lg sm:text-xl font-semibold text-stone-50 leading-tight">ふたりでつくる ホテルギャラリー・ポスター</h1>
+                    <h1 class="font-mincho text-lg sm:text-xl font-semibold text-stone-50 leading-tight">ホテルギャラリー・ポスター</h1>
                     <p class="font-cinzel text-xs tracking-[0.25em] text-stone-400">HOTEL GALLERY EDITION</p>
                 </div>
             </div>
@@ -121,19 +115,13 @@
         <!-- 操作パネル（左側） -->
         <section class="lg:col-span-5 space-y-6">
 
-            <!-- 1. つくる人 -->
+            <!-- 1. お名前 -->
             <div class="panel">
-                <h2 class="step-title"><span class="step-no">01</span>つくる人<span class="step-en">Artists</span></h2>
-                <p class="help">ふたりの呼び名を入れてください。色や形を「だれが選んだか」を記録するときに使います。</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="name-elder" class="label"><span class="owner-dot owner-elder"></span>年長の方の呼び名</label>
-                        <input type="text" id="name-elder" class="field" maxlength="20" placeholder="例：さくら">
-                    </div>
-                    <div>
-                        <label for="name-young" class="label"><span class="owner-dot owner-young"></span>若い方の呼び名</label>
-                        <input type="text" id="name-young" class="field" maxlength="20" placeholder="例：はると">
-                    </div>
+                <h2 class="step-title"><span class="step-no">01</span>お名前<span class="step-en">Artist</span></h2>
+                <div>
+                    <label for="author-name" class="label">お名前（呼び名）</label>
+                    <input type="text" id="author-name" class="field" maxlength="20" placeholder="例：さくら">
+                    <p class="help mt-1">ポスターの下に「作」として入ります。入れなくてもかまいません。</p>
                 </div>
             </div>
 
@@ -145,14 +133,13 @@
                 <div id="preset-list" class="space-y-2.5"></div>
             </div>
 
-            <!-- 3. ふたりの色 -->
+            <!-- 3. 色 -->
             <div class="panel">
-                <h2 class="step-title"><span class="step-no">03</span>ふたりの色をもちよる<span class="step-en">Our Colors</span></h2>
-                <p class="help">思い出の色や好きな色を足しましょう。色の四角をタップすると色を変えられます。名前や思い出も自由に書けます。</p>
+                <h2 class="step-title"><span class="step-no">03</span>色をととのえる<span class="step-en">Colors</span></h2>
+                <p class="help">色の四角をタップすると色を変えられます。思い出の色や好きな色を足すこともできます。色の名前や思い出も自由に書けます。</p>
                 <div id="palette-list" class="space-y-3"></div>
                 <div class="grid grid-cols-1 gap-3">
-                    <button type="button" id="btn-add-elder" class="btn"><i class="fa-solid fa-plus"></i><span class="owner-dot owner-elder"></span><span><span data-owner-label="elder">年長の方</span>の色を足す</span></button>
-                    <button type="button" id="btn-add-young" class="btn"><i class="fa-solid fa-plus"></i><span class="owner-dot owner-young"></span><span><span data-owner-label="young">若い方</span>の色を足す</span></button>
+                    <button type="button" id="btn-add-color" class="btn"><i class="fa-solid fa-plus"></i>色を足す</button>
                 </div>
 
                 <!-- 写真から色をひろう -->
@@ -170,40 +157,10 @@
                                 <p class="text-sm text-stone-300">写真の上を指でなぞると、色が変わります。</p>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="text-base text-stone-300 mr-1">えらんだ人</span>
-                            <div id="photo-owner" class="flex flex-wrap gap-2"></div>
-                        </div>
                         <div class="flex flex-wrap gap-2">
                             <button type="button" id="btn-add-photo-color" class="btn btn-primary flex-1"><i class="fa-solid fa-plus"></i>この色をパレットに足す</button>
                             <button type="button" id="btn-photo-close" class="btn"><i class="fa-solid fa-xmark"></i>写真を閉じる</button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- ふたりの色をまぜる -->
-                <div class="subbox space-y-4" id="mix-tool">
-                    <h3 class="font-mincho text-lg font-semibold text-stone-50"><span class="owner-dot owner-both"></span>ふたりの色をまぜる</h3>
-                    <p class="help">ひとりずつ色をえらぶと、そのあいだの色ができます。</p>
-                    <div>
-                        <p class="label"><span data-owner-label="elder">年長の方</span>がえらぶ色</p>
-                        <div id="mix-a" class="flex flex-wrap gap-2"></div>
-                    </div>
-                    <div>
-                        <p class="label"><span data-owner-label="young">若い方</span>がえらぶ色</p>
-                        <div id="mix-b" class="flex flex-wrap gap-2"></div>
-                    </div>
-                    <div>
-                        <label for="mix-ratio" class="label">まぜ具合</label>
-                        <div class="flex items-center gap-3 text-base text-stone-200">
-                            <span class="w-6 h-6 rounded border border-white/30 flex-shrink-0" id="mix-a-mini"></span>
-                            <input type="range" id="mix-ratio" min="0.1" max="0.9" step="0.05" value="0.5" class="flex-1">
-                            <span class="w-6 h-6 rounded border border-white/30 flex-shrink-0" id="mix-b-mini"></span>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <div id="mix-preview" class="w-20 h-20 rounded-xl border-2 border-white/30 flex-shrink-0"></div>
-                        <button type="button" id="btn-add-mix" class="btn btn-primary flex-1"><i class="fa-solid fa-plus"></i>この色をパレットに足す</button>
                     </div>
                 </div>
             </div>
@@ -249,8 +206,8 @@
                     <p class="help mt-1">日本語でも英語でも入れられます。長いときは自動で小さくなり、2行までおさまります。</p>
                 </div>
                 <div>
-                    <label for="poster-message" class="label">ふたりのひとこと</label>
-                    <textarea id="poster-message" class="field font-mincho leading-relaxed" rows="3" maxlength="90" placeholder="例：祖母の家の縁側の色と、いまの街の色をならべました。"></textarea>
+                    <label for="poster-message" class="label">ひとこと</label>
+                    <textarea id="poster-message" class="field font-mincho leading-relaxed" rows="3" maxlength="90" placeholder="例：子どものころ過ごした家の縁側を思い出して作りました。"></textarea>
                     <p class="help mt-1"><span id="message-count">0</span>／90文字。作品にこめた思いや、話したことを書きましょう。</p>
                 </div>
                 <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
@@ -428,14 +385,6 @@
             ]
         };
 
-        // 選んだ人・置いた人
-        const OWNERS = {
-            elder: '年長の方',
-            young: '若い方',
-            both:  'ふたりで',
-            base:  'たたき台'
-        };
-        const OWNER_CHOICES = ['elder', 'young', 'both'];
         const MAX_COLORS = 10;
         const MIN_COLORS = 2;
 
@@ -502,7 +451,7 @@
         }
 
         function paletteFromPreset(preset) {
-            return preset.colors.map(c => ({ id: uid('c'), hex: c.hex, name: c.name, memory: '', owner: 'base' }));
+            return preset.colors.map(c => ({ id: uid('c'), hex: c.hex, name: c.name, memory: '' }));
         }
 
         // ===== ポスターの寸法 =====
@@ -517,16 +466,14 @@
             presetIndex: 0,
             palette: paletteFromPreset(PALETTE_DATA.calm[0]),
             bgId: null,
-            names: { elder: '', young: '' },
-            mix: { aId: null, bId: null, ratio: 0.5, aManual: false, bManual: false },
+            author: '',
             scale: 1.0,
             showGuide: false,
-            title: 'ふたりのギャラリー',
+            title: 'わたしのギャラリー',
             message: '',
             showSwatchLabels: true,
             shapes: [],
             selectedId: null,
-            lastOwner: 'both'
         };
 
         const $ = id => document.getElementById(id);
@@ -565,12 +512,11 @@
             if (!main || best < 4.5) main = luminance(bg) > 0.35 ? '#1C1C1C' : '#F5F3EE';
             return { main, sub: mixHex(main, bg, 0.35), faint: mixHex(main, bg, 0.75) };
         }
-        function ownerLabel(owner) {
-            if ((owner === 'elder' || owner === 'young') && state.names[owner].trim()) return state.names[owner].trim();
-            return OWNERS[owner] || OWNERS.base;
-        }
+        // たたき台の配色から色や思い出を変えたかどうか（置きかえ前の確認に使う）
         function paletteIsEdited() {
-            return state.palette.some(c => c.owner !== 'base' || c.memory.trim());
+            const p = (PALETTE_DATA[state.mood] || [])[state.presetIndex];
+            if (!p || p.colors.length !== state.palette.length) return true;
+            return state.palette.some((c, i) => c.hex !== normalizeHex(p.colors[i].hex) || c.name !== p.colors[i].name || c.memory.trim());
         }
 
         // ===== 図形 =====
@@ -582,7 +528,7 @@
                 { type: 'arch',          size: 0.95, x: 50,  y: -50 },
                 { type: 'rect',          size: 0.7,  x: -80, y: -70 },
                 { type: 'triangle',      size: 0.8,  x: 70,  y: 80 }
-            ].map((s, i) => ({ id: uid('s'), rotation: 0, colorId: pick(i).id, hex: pick(i).hex, owner: 'base', ...s }));
+            ].map((s, i) => ({ id: uid('s'), rotation: 0, colorId: pick(i).id, hex: pick(i).hex, ...s }));
         }
         function selectedShape() {
             return state.shapes.find(s => s.id === state.selectedId) || null;
@@ -677,7 +623,7 @@
                 presetIndex: state.presetIndex,
                 palette: state.palette.map(c => ({ ...c })),
                 bgId: state.bgId,
-                names: { ...state.names },
+                author: state.author,
                 scale: state.scale,
                 showGuide: state.showGuide,
                 title: state.title,
@@ -691,7 +637,7 @@
             state.presetIndex = w.presetIndex;
             state.palette = w.palette.map(c => ({ ...c }));
             state.bgId = w.bgId;
-            state.names = { ...w.names };
+            state.author = w.author || '';
             state.scale = w.scale;
             state.showGuide = w.showGuide;
             state.title = w.title;
@@ -752,13 +698,11 @@
         const str = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
         function normalizeWork(raw) {
             if (!raw || typeof raw !== 'object') throw new Error('作品のデータではありません');
-            const owners = ['elder', 'young', 'both', 'base'];
             let palette = Array.isArray(raw.palette) ? raw.palette.slice(0, MAX_COLORS).map(c => ({
                 id: typeof c.id === 'string' && c.id ? c.id : uid('c'),
                 hex: normalizeHex(c.hex),
                 name: str(c.name, 24),
-                memory: str(c.memory, 40),
-                owner: owners.includes(c.owner) ? c.owner : 'base'
+                memory: str(c.memory, 40)
             })) : [];
             // id の重複を避ける
             const seen = new Set();
@@ -773,8 +717,7 @@
                 size: clampNum(s.size, 0.15, 2.6, 0.6),
                 rotation: clampNum(s.rotation, -180, 180, 0),
                 colorId: typeof s.colorId === 'string' ? s.colorId : null,
-                hex: normalizeHex(s.hex),
-                owner: owners.includes(s.owner) ? s.owner : 'base'
+                hex: normalizeHex(s.hex)
             })) : [];
             const mood = PALETTE_DATA[raw.mood] ? raw.mood : 'calm';
             return {
@@ -782,7 +725,8 @@
                 presetIndex: clampNum(Math.floor(raw.presetIndex), 0, PALETTE_DATA[mood].length - 1, 0),
                 palette,
                 bgId: palette.some(c => c.id === raw.bgId) ? raw.bgId : null,
-                names: { elder: str(raw.names && raw.names.elder, 20), young: str(raw.names && raw.names.young, 20) },
+                // 以前の形式（二人分の名前）のデータも読めるようにする
+                author: str(typeof raw.author === 'string' ? raw.author : (raw.names && (raw.names.elder || raw.names.young)), 20),
                 scale: clampNum(raw.scale, 0.5, 1.6, 1),
                 showGuide: !!raw.showGuide,
                 title: str(raw.title, 40),
@@ -844,7 +788,6 @@
             store.currentId = id;
             writeStore();
             state.selectedId = null;
-            state.mix = { aId: null, bId: null, ratio: 0.5, aManual: false, bManual: false };
             renderAll();
             resetHistory();
         }
@@ -858,8 +801,8 @@
             state.palette = prevPalette;
             return {
                 mood: 'calm', presetIndex: 0, palette, bgId: null,
-                names: { elder: '', young: '' }, scale: 1, showGuide: false,
-                title: 'ふたりのギャラリー', message: '', showSwatchLabels: true, shapes
+                author: '', scale: 1, showGuide: false,
+                title: 'わたしのギャラリー', message: '', showSwatchLabels: true, shapes
             };
         }
 
@@ -896,13 +839,13 @@
             }
             list.innerHTML = works.map(w => {
                 const d = w.data || {};
-                const names = [d.names && d.names.elder, d.names && d.names.young].filter(Boolean).map(escapeHtml).join(' × ');
+                const names = escapeHtml(d.author || (d.names && (d.names.elder || d.names.young)) || '');
                 const current = w.id === currentWorkId;
                 return `
                 <div class="work-item flex gap-3 sm:gap-4 items-center p-3 rounded-xl border-2 ${current ? 'border-amber-200/80 bg-stone-800/70' : 'border-stone-700 bg-stone-950/50'}" data-id="${escapeHtml(w.id)}">
                     ${w.thumb ? `<img src="${w.thumb}" alt="" class="w-16 h-[90px] sm:w-20 sm:h-[113px] object-cover rounded border border-stone-600 flex-shrink-0">` : '<div class="w-16 h-[90px] sm:w-20 sm:h-[113px] rounded border border-stone-600 bg-stone-800 flex-shrink-0"></div>'}
                     <div class="flex-1 min-w-0">
-                        <p class="font-mincho font-semibold text-lg text-stone-50 truncate">${escapeHtml(d.title || 'ふたりのギャラリー')}</p>
+                        <p class="font-mincho font-semibold text-lg text-stone-50 truncate">${escapeHtml(d.title || 'わたしのギャラリー')}</p>
                         ${names ? `<p class="text-base text-stone-200 truncate">${names}</p>` : ''}
                         <p class="text-sm text-stone-300">${formatDate(w.updatedAt)}${current ? '　<span class="text-amber-200 font-bold">いま開いている作品</span>' : ''}</p>
                         <div class="flex flex-wrap gap-2 mt-2">
@@ -920,12 +863,12 @@
                 if (openBtn) openBtn.addEventListener('click', () => {
                     openWork(id);
                     $('works-dialog').close();
-                    showToast(`「${(w.data && w.data.title) || 'ふたりのギャラリー'}」を開きました`);
+                    showToast(`「${(w.data && w.data.title) || 'わたしのギャラリー'}」を開きました`);
                 });
                 item.querySelector('.work-dup').addEventListener('click', () => {
                     if (id === currentWorkId) saveNow();
                     const copy = JSON.parse(JSON.stringify(store.works[id].data));
-                    copy.title = `${copy.title || 'ふたりのギャラリー'}（複製）`.slice(0, 40);
+                    copy.title = `${copy.title || 'わたしのギャラリー'}（複製）`.slice(0, 40);
                     const newId = createWork(copy, { open: false });
                     store.works[newId].thumb = store.works[id].thumb;
                     writeStore();
@@ -933,7 +876,7 @@
                     showToast('作品を複製しました');
                 });
                 item.querySelector('.work-del').addEventListener('click', () => {
-                    const title = (w.data && w.data.title) || 'ふたりのギャラリー';
+                    const title = (w.data && w.data.title) || 'わたしのギャラリー';
                     if (!confirm(`「${title}」を消しますか？　消すと元にもどせません。`)) return;
                     delete store.works[id];
                     if (id === currentWorkId) {
@@ -989,7 +932,7 @@
                 const data = normalizeWork(entry && entry.data);
                 let id = entry && typeof entry.id === 'string' && entry.id ? entry.id : uid('w');
                 if (store.works[id]) {
-                    const overwrite = confirm(`「${data.title || 'ふたりのギャラリー'}」は、この端末にもう保存されています。\n\nOK：ファイルの内容で上書きする\nキャンセル：別の作品として読み込む`);
+                    const overwrite = confirm(`「${data.title || 'わたしのギャラリー'}」は、この端末にもう保存されています。\n\nOK：ファイルの内容で上書きする\nキャンセル：別の作品として読み込む`);
                     if (!overwrite) id = uid('w');
                 }
                 const now = new Date().toISOString();
@@ -1041,7 +984,7 @@
                         const count = importFromText(String(reader.result));
                         renderWorksList();
                         dialog.close();
-                        showToast(count > 1 ? `${count}作品を読み込みました` : `「${state.title || 'ふたりのギャラリー'}」を読み込みました`);
+                        showToast(count > 1 ? `${count}作品を読み込みました` : `「${state.title || 'わたしのギャラリー'}」を読み込みました`);
                     } catch (err) {
                         showToast(err.message || '読み込めませんでした');
                     }
@@ -1092,11 +1035,10 @@
         }
 
         function renderAll() {
-            renderNames();
+            renderAuthor();
             renderMoodTabs();
             renderPresetList();
             renderPaletteList();
-            renderMixTool();
             renderShapeAdd();
             renderShapeList();
             renderPosterFields();
@@ -1120,17 +1062,9 @@
             window.addEventListener('resize', requestDraw);
         }
 
-        // ===== 01 つくる人 =====
-        function renderNames() {
-            $('name-elder').value = state.names.elder;
-            $('name-young').value = state.names.young;
-            refreshOwnerLabels();
-        }
-        function refreshOwnerLabels() {
-            document.querySelectorAll('[data-owner-label]').forEach(el => { el.textContent = ownerLabel(el.dataset.ownerLabel); });
-            document.querySelectorAll('.owner-btn').forEach(btn => {
-                btn.querySelector('.owner-name').textContent = ownerLabel(btn.dataset.owner);
-            });
+        // ===== 01 お名前 =====
+        function renderAuthor() {
+            $('author-name').value = state.author;
         }
 
         // ===== 02 たたき台 =====
@@ -1162,7 +1096,7 @@
             `).join('');
             list.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.preset, 10);
-                if (paletteIsEdited() && !confirm('いまの色（思い出や選んだ人の記録も）を、この配色に置きかえます。よろしいですか？')) return;
+                if (paletteIsEdited() && !confirm('いまの色（書いた名前や思い出も）を、この配色に置きかえます。よろしいですか？')) return;
                 state.presetIndex = idx;
                 state.palette = paletteFromPreset(PALETTE_DATA[state.mood][idx]);
                 state.bgId = null;
@@ -1174,7 +1108,6 @@
                     s.hex = c.hex;
                 });
                 renderPaletteList();
-                renderMixTool();
                 renderShapeList();
                 requestDraw();
                 commit();
@@ -1182,14 +1115,7 @@
             }));
         }
 
-        // ===== 03 ふたりの色 =====
-        function ownerButtons(current, cls) {
-            return OWNER_CHOICES.map(o => `
-                <button type="button" data-owner="${o}" class="owner-btn ${cls} btn btn-sm ${current === o ? 'btn-on' : ''}" aria-pressed="${current === o}">
-                    <span class="owner-dot owner-${o}"></span><span class="owner-name">${escapeHtml(ownerLabel(o))}</span>
-                </button>`).join('');
-        }
-
+        // ===== 03 色 =====
         function renderPaletteList() {
             const list = $('palette-list');
             const bg = getBgColor();
@@ -1208,9 +1134,7 @@
                             <input type="text" class="field py-2 color-memory" value="${escapeHtml(c.memory)}" maxlength="40" placeholder="思い出・この色をえらんだわけ" aria-label="${i + 1}番目の色の思い出">
                         </div>
                     </div>
-                    <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <span class="text-base text-stone-300 mr-1">えらんだ人</span>
-                        ${ownerButtons(c.owner, 'color-owner')}
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
                         <label class="ml-auto flex items-center gap-2 text-base text-stone-200 cursor-pointer min-h-[44px]">
                             <input type="radio" name="bg-color" class="bg-radio" ${bg.id === c.id ? 'checked' : ''}>背景にする
                         </label>
@@ -1224,23 +1148,15 @@
                 const colorInput = row.querySelector('.color-input');
                 colorInput.addEventListener('input', e => {
                     color.hex = normalizeHex(e.target.value);
-                    updateMixPreview();
                     requestDraw();
                 });
-                colorInput.addEventListener('change', () => { renderMixTool(); renderShapeList(); commit(); });
+                colorInput.addEventListener('change', () => { renderShapeList(); commit(); });
                 const nameInput = row.querySelector('.color-name');
                 nameInput.addEventListener('input', e => { color.name = e.target.value; requestDraw(); });
-                nameInput.addEventListener('change', () => { renderMixTool(); commit(); });
+                nameInput.addEventListener('change', commit);
                 const memInput = row.querySelector('.color-memory');
                 memInput.addEventListener('input', e => { color.memory = e.target.value; requestDraw(); });
                 memInput.addEventListener('change', commit);
-                row.querySelectorAll('.color-owner').forEach(btn => btn.addEventListener('click', () => {
-                    color.owner = btn.dataset.owner;
-                    renderPaletteList();
-                    renderMixTool();
-                    requestDraw();
-                    commit();
-                }));
                 row.querySelector('.bg-radio').addEventListener('change', () => {
                     state.bgId = id;
                     requestDraw();
@@ -1255,27 +1171,24 @@
                     state.palette = state.palette.filter(c => c.id !== id);
                     if (state.bgId === id) state.bgId = null;
                     renderPaletteList();
-                    renderMixTool();
                     renderShapeList();
                     requestDraw();
                     commit();
                 });
             });
 
-            const full = state.palette.length >= MAX_COLORS;
-            ['btn-add-elder', 'btn-add-young', 'btn-add-mix'].forEach(bid => { const b = $(bid); if (b) b.disabled = full; });
+            $('btn-add-color').disabled = state.palette.length >= MAX_COLORS;
         }
 
         // 新しい色を足す（openPicker のときは色選びの画面をすぐに開く）
-        function addColor({ hex, name = '', memory = '', owner }, openPicker = false) {
+        function addColor({ hex, name = '', memory = '' }, openPicker = false) {
             if (state.palette.length >= MAX_COLORS) {
                 showToast(`色は${MAX_COLORS}色までです。使わない色を消してから足してください`);
                 return null;
             }
-            const color = { id: uid('c'), hex: normalizeHex(hex), name, memory, owner };
+            const color = { id: uid('c'), hex: normalizeHex(hex), name, memory };
             state.palette.push(color);
             renderPaletteList();
-            renderMixTool();
             renderShapeList();
             requestDraw();
             commit();
@@ -1297,53 +1210,6 @@
             return mixHex(base, state.palette.length % 2 ? '#FFFFFF' : '#C0392B', 0.3);
         }
 
-        // ふたりの色をまぜる
-        function sortedForOwner(owner) {
-            const rank = c => (c.owner === owner ? 0 : c.owner === 'both' ? 1 : c.owner === 'base' ? 2 : 3);
-            return [...state.palette].sort((a, b) => rank(a) - rank(b));
-        }
-        function renderMixTool() {
-            // 自分で選んでいないときは、それぞれの人が足した色を自動で選んでおく
-            const a = findColor(state.mix.aId);
-            if (!a || (!state.mix.aManual && a.owner !== 'elder')) {
-                state.mix.aId = (sortedForOwner('elder')[0] || {}).id || null;
-                state.mix.aManual = false;
-            }
-            const b = findColor(state.mix.bId);
-            if (!b || b.id === state.mix.aId || (!state.mix.bManual && b.owner !== 'young')) {
-                const cands = sortedForOwner('young').filter(c => c.id !== state.mix.aId);
-                state.mix.bId = (cands[0] || {}).id || null;
-                state.mix.bManual = false;
-            }
-            const chip = (c, selected, side) => `
-                <button type="button" data-side="${side}" data-id="${c.id}" class="mix-chip flex items-center gap-2 min-h-[48px] pl-1.5 pr-3 py-1 rounded-xl border-2 ${selected ? 'border-amber-200 bg-stone-800' : 'border-stone-700 hover:border-stone-400'} text-base text-stone-100" aria-pressed="${selected}">
-                    <span class="w-9 h-9 rounded-lg border border-white/25 flex-shrink-0" style="background:${c.hex}"></span>
-                    <span class="owner-dot owner-${c.owner}"></span>
-                    <span class="max-w-[9em] truncate">${escapeHtml(c.name.trim() || c.hex)}</span>
-                </button>`;
-            $('mix-a').innerHTML = sortedForOwner('elder').map(c => chip(c, c.id === state.mix.aId, 'a')).join('');
-            $('mix-b').innerHTML = sortedForOwner('young').map(c => chip(c, c.id === state.mix.bId, 'b')).join('');
-            document.querySelectorAll('.mix-chip').forEach(btn => btn.addEventListener('click', () => {
-                if (btn.dataset.side === 'a') { state.mix.aId = btn.dataset.id; state.mix.aManual = true; }
-                else { state.mix.bId = btn.dataset.id; state.mix.bManual = true; }
-                renderMixTool();
-            }));
-            updateMixPreview();
-            refreshOwnerLabels();
-        }
-        function currentMixHex() {
-            const a = findColor(state.mix.aId), b = findColor(state.mix.bId);
-            if (!a || !b) return null;
-            return mixHex(a.hex, b.hex, state.mix.ratio);
-        }
-        function updateMixPreview() {
-            const a = findColor(state.mix.aId), b = findColor(state.mix.bId);
-            const hex = currentMixHex();
-            $('mix-preview').style.background = hex || 'transparent';
-            $('mix-a-mini').style.background = a ? a.hex : 'transparent';
-            $('mix-b-mini').style.background = b ? b.hex : 'transparent';
-        }
-
         // ===== 04 形 =====
         function renderShapeAdd() {
             const wrap = $('shape-add');
@@ -1363,8 +1229,7 @@
                 id: uid('s'), type,
                 x: Math.round(Math.cos(n * 2.4) * 60), y: Math.round(Math.sin(n * 2.4) * 60),
                 size: 0.6, rotation: 0,
-                colorId: c.id, hex: c.hex,
-                owner: state.lastOwner
+                colorId: c.id, hex: c.hex
             };
             state.shapes.push(shape);
             state.selectedId = shape.id;
@@ -1410,7 +1275,6 @@
                         <span class="w-12 h-12 rounded-lg bg-stone-200/90 flex items-center justify-center flex-shrink-0">${shapeIconSvg(s.type, hex, 34)}</span>
                         <span class="flex-1 min-w-0">
                             <span class="block font-bold text-base text-stone-50">${info.label}${sel ? '<span class="text-amber-200">（えらんでいます）</span>' : ''}</span>
-                            <span class="block text-sm text-stone-300"><span class="owner-dot owner-${s.owner}"></span>置いた人：${escapeHtml(ownerLabel(s.owner))}</span>
                         </span>
                         <i class="fa-solid ${sel ? 'fa-chevron-up' : 'fa-chevron-down'} text-stone-300"></i>
                     </button>`;
@@ -1435,10 +1299,6 @@
                                 <input type="color" class="shape-color-free w-12 h-12" value="${hex.toLowerCase()}" aria-label="ほかの色をえらぶ">ほかの色
                             </label>
                         </div>
-                    </div>
-                    <div>
-                        <p class="label">置いた人</p>
-                        <div class="flex flex-wrap gap-2">${ownerButtons(s.owner, 'shape-owner')}</div>
                     </div>
                     <div>
                         <p class="label">大きさ</p>
@@ -1488,9 +1348,6 @@
                 const free = card.querySelector('.shape-color-free');
                 free.addEventListener('input', e => { s.colorId = null; s.hex = normalizeHex(e.target.value); requestDraw(); });
                 free.addEventListener('change', () => { renderShapeList(); commit(); });
-                card.querySelectorAll('.shape-owner').forEach(btn => btn.addEventListener('click', () => {
-                    s.owner = btn.dataset.owner; state.lastOwner = s.owner; renderShapeList(); commit();
-                }));
                 const size = card.querySelector('.shape-size');
                 size.addEventListener('input', e => { s.size = parseFloat(e.target.value); requestDraw(); });
                 size.addEventListener('change', commit);
@@ -1680,14 +1537,7 @@
         }
 
         // ===== 写真から色をひろう（端末の中だけで処理し、送信はしない） =====
-        const photo = { img: null, picked: null, point: null, owner: 'elder' };
-        function renderPhotoOwner() {
-            $('photo-owner').innerHTML = ownerButtons(photo.owner, 'photo-owner-btn');
-            document.querySelectorAll('.photo-owner-btn').forEach(btn => btn.addEventListener('click', () => {
-                photo.owner = btn.dataset.owner;
-                renderPhotoOwner();
-            }));
-        }
+        const photo = { img: null, picked: null, point: null };
         function drawPhoto() {
             const c = $('photo-canvas');
             const pctx = c.getContext('2d');
@@ -1743,7 +1593,6 @@
                     $('photo-swatch').style.background = 'transparent';
                     $('photo-hex').textContent = '（写真をタップしてください）';
                     $('btn-add-photo-color').disabled = true;
-                    renderPhotoOwner();
                     $('photo-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 };
                 img.onerror = () => showToast('この写真は開けませんでした');
@@ -1778,7 +1627,7 @@
             ['pointerup', 'pointercancel'].forEach(t => c.addEventListener(t, () => { picking = false; }));
             $('btn-add-photo-color').addEventListener('click', () => {
                 if (!photo.picked) return;
-                if (addColor({ hex: photo.picked, name: '', memory: '写真からひろった色', owner: photo.owner })) {
+                if (addColor({ hex: photo.picked, name: '', memory: '写真からひろった色' })) {
                     showToast('写真の色をパレットに足しました。名前をつけてみましょう');
                 }
             });
@@ -1806,29 +1655,11 @@
 
         // ===== イベント =====
         function bindEvents() {
-            ['elder', 'young'].forEach(who => {
-                const input = $(`name-${who}`);
-                input.addEventListener('input', e => {
-                    state.names[who] = e.target.value;
-                    refreshOwnerLabels();
-                    requestDraw();
-                });
-                input.addEventListener('change', () => { renderMixTool(); renderShapeList(); commit(); });
-            });
+            const author = $('author-name');
+            author.addEventListener('input', e => { state.author = e.target.value; requestDraw(); });
+            author.addEventListener('change', commit);
 
-            $('btn-add-elder').addEventListener('click', () => addColor({ hex: suggestNewColor(), owner: 'elder' }, true));
-            $('btn-add-young').addEventListener('click', () => addColor({ hex: suggestNewColor(), owner: 'young' }, true));
-            $('mix-ratio').addEventListener('input', e => {
-                state.mix.ratio = parseFloat(e.target.value);
-                updateMixPreview();
-            });
-            $('btn-add-mix').addEventListener('click', () => {
-                const a = findColor(state.mix.aId), b = findColor(state.mix.bId);
-                const hex = currentMixHex();
-                if (!hex) return;
-                const an = a.name.trim() || a.hex, bn = b.name.trim() || b.hex;
-                if (addColor({ hex, name: `${an}と${bn}のあいだ`, owner: 'both' })) showToast('ふたりの色をまぜて、パレットに足しました');
-            });
+            $('btn-add-color').addEventListener('click', () => addColor({ hex: suggestNewColor() }, true));
 
             const scale = $('shape-scale');
             scale.addEventListener('input', e => {
@@ -2097,38 +1928,11 @@
             return { font, spacing, lines: wrapText(title, maxWidth, spacing, 2), lineHeight: 30 };
         }
 
-        // 選んだ人の印：年長の方＝塗りつぶしの丸、若い方＝輪、ふたりで＝半分塗りの丸
-        function drawOwnerMark(x, y, owner, r, color) {
-            if (!['elder', 'young', 'both'].includes(owner)) return;
-            ctx.save();
-            ctx.fillStyle = color;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = Math.max(1, r * 0.35);
-            ctx.beginPath();
-            if (owner === 'elder') {
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (owner === 'young') {
-                ctx.arc(x, y, r - ctx.lineWidth / 2, 0, Math.PI * 2);
-                ctx.stroke();
-            } else {
-                ctx.arc(x, y, r - ctx.lineWidth / 2, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(x, y, r, Math.PI / 2, Math.PI * 1.5);
-                ctx.closePath();
-                ctx.fill();
-            }
-            ctx.restore();
-        }
-
         function drawHotelTypography(text) {
             ctx.save();
             ctx.textBaseline = 'alphabetic';
             const preset = PALETTE_DATA[state.mood][state.presetIndex] || PALETTE_DATA.calm[0];
             const left = 72, right = W - 72, maxWidth = right - left;
-            const elderName = state.names.elder.trim(), youngName = state.names.young.trim();
-            const usedOwners = new Set([...state.palette.map(c => c.owner), ...state.shapes.map(s => s.owner)]);
 
             // 上部コレクション表記
             ctx.fillStyle = text.sub;
@@ -2136,36 +1940,17 @@
             fillSpacedText(`COLLECTION NO. 0${state.presetIndex + 1} — HOTEL GALLERY EDITION`, left, 90, 5);
 
             // --- 下から順に位置を決める ---
-            // フッター：つくった人
+            // フッター：作者名
             const footerY = H - 66;
-            const showArtists = elderName || youngName || usedOwners.has('elder') || usedOwners.has('young') || usedOwners.has('both');
-            if (showArtists) {
+            const author = state.author.trim();
+            if (author) {
                 ctx.fillStyle = text.sub;
                 ctx.font = '400 9px "Montserrat", sans-serif';
-                fillSpacedText('ARTISTS', left, footerY, 3);
-                let x = left + 70;
-                const people = [['elder', elderName || OWNERS.elder], ['young', youngName || OWNERS.young]];
-                people.forEach(([who, label], i) => {
-                    ctx.font = `500 15px ${MINCHO}`;
-                    ensureGlyphs(ctx.font, label);
-                    drawOwnerMark(x + 6, footerY - 5, who, 6, text.main);
-                    ctx.fillStyle = text.main;
-                    const shown = truncateToWidth(label, 170);
-                    fillSpacedText(shown, x + 18, footerY, 1);
-                    x += 18 + measureSpaced(shown, 1) + 16;
-                    if (i === 0) {
-                        ctx.fillStyle = text.sub;
-                        ctx.font = '300 14px "Montserrat", sans-serif';
-                        fillSpacedText('×', x, footerY, 0);
-                        x += 24;
-                    }
-                });
-                if (usedOwners.has('both')) {
-                    ctx.font = `400 12px ${MINCHO}`;
-                    drawOwnerMark(x + 6, footerY - 4, 'both', 5, text.sub);
-                    ctx.fillStyle = text.sub;
-                    fillSpacedText('ふたりで', x + 16, footerY, 1);
-                }
+                fillSpacedText('ARTIST', left, footerY, 3);
+                ctx.font = `500 15px ${MINCHO}`;
+                ensureGlyphs(ctx.font, '作' + author);
+                ctx.fillStyle = text.main;
+                fillSpacedText(`作　${truncateToWidth(author, 300)}`, left + 64, footerY, 1);
             }
             ctx.fillStyle = text.sub;
             ctx.font = '400 9px "Montserrat", sans-serif';
@@ -2185,17 +1970,13 @@
                 const cx = x0 + blockWidth / 2;
                 const inner = blockWidth - 8;
                 if (state.showSwatchLabels) {
-                    // 色の名前（選んだ人の印つき）
+                    // 色の名前
                     ctx.font = `600 ${n > 7 ? 11 : 12}px ${MINCHO}`;
                     const name = c.name.trim() || c.hex;
                     ensureGlyphs(ctx.font, name);
-                    const hasMark = ['elder', 'young', 'both'].includes(c.owner);
-                    const nameShown = truncateToWidth(name, inner - (hasMark ? 12 : 0));
-                    const nw = measureSpaced(nameShown, 0) + (hasMark ? 12 : 0);
-                    const nx = cx - nw / 2;
-                    if (hasMark) drawOwnerMark(nx + 4, barY + barHeight + 15, c.owner, 4, text.main);
+                    const nameShown = truncateToWidth(name, inner);
                     ctx.fillStyle = text.main;
-                    fillSpacedText(nameShown, nx + (hasMark ? 12 : 0), barY + barHeight + 19, 0);
+                    fillSpacedText(nameShown, cx, barY + barHeight + 19, 0, 'center');
                     // 思い出（2行まで）
                     if (c.memory.trim()) {
                         ctx.font = `400 ${n > 7 ? 9 : 10}px ${MINCHO}`;
@@ -2212,7 +1993,7 @@
                 }
             });
 
-            // ふたりのひとこと（3行まで）
+            // ひとこと（3行まで）
             let cursorY = barY - 30;
             const message = state.message.trim();
             if (message) {
@@ -2233,7 +2014,7 @@
             cursorY -= 26;
 
             // タイトル
-            const title = state.title.trim() || 'ふたりのギャラリー';
+            const title = state.title.trim() || 'わたしのギャラリー';
             const tl = layoutTitle(title, maxWidth);
             ctx.font = tl.font;
             ensureGlyphs(tl.font, title);
