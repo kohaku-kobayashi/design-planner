@@ -21,7 +21,7 @@
     <!-- Google Fonts（BIZ UDPゴシック：読みやすさに配慮したUDフォント／しっぽり明朝：見出し・ポスターの和文） -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Cinzel:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Maru+Gothic:wght@500;700&family=Cinzel:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -131,6 +131,13 @@
                 <p class="help">まずは雰囲気の近い配色をひとつ選びましょう。あとから色を差し替えたり足したりできます。</p>
                 <div class="flex flex-wrap gap-2" id="mood-selector" role="tablist" aria-label="雰囲気"></div>
                 <div id="preset-list" class="space-y-2.5"></div>
+            </div>
+
+            <!-- 雰囲気（描き方） -->
+            <div class="panel">
+                <h2 class="step-title"><span class="step-no">02+</span>雰囲気を変える<span class="step-en">Style</span></h2>
+                <p class="help">文字の置き方や背景、図形の描き方を変えると、同じ色でもがらりと雰囲気が変わります。</p>
+                <div id="style-options" class="space-y-4"></div>
             </div>
 
             <!-- 3. 色 -->
@@ -397,8 +404,72 @@
             { id: 'band',          label: '帯',     extent: 1.22, icon: '<rect x="2" y="9.5" width="20" height="5"/>' },
             { id: 'triangle',      label: '三角',   extent: 1.0,  icon: '<path d="M12 3 L21 19 L3 19 Z"/>' },
             { id: 'arch',          label: 'アーチ', extent: 1.05, icon: '<path d="M6 21 V10 A6 6 0 0 1 18 10 V21 Z"/>' },
-            { id: 'wave',          label: 'だ円',   extent: 1.3,  icon: '<ellipse cx="12" cy="12" rx="10" ry="5.5"/>' }
+            { id: 'wave',          label: 'だ円',   extent: 1.3,  icon: '<ellipse cx="12" cy="12" rx="10" ry="5.5"/>' },
+            { id: 'ring',          label: '輪',     extent: 1.0,  icon: '<path fill-rule="evenodd" d="M12 3a9 9 0 1 0 0.01 0Zm0 4.5a4.5 4.5 0 1 1-0.01 0Z"/>' },
+            { id: 'quarter',       label: '扇',     extent: 1.0,  icon: '<path d="M4 20 V4 A16 16 0 0 1 20 20 Z"/>' },
+            { id: 'line',          label: '線',     extent: 1.22, icon: '<rect x="2" y="11" width="20" height="2"/>' },
+            { id: 'leaf',          label: '葉',     extent: 1.0,  icon: '<path d="M12 2 Q20 12 12 22 Q4 12 12 2 Z"/>' },
+            { id: 'star',          label: '星',     extent: 1.0,  icon: '<path d="M12 2 L14.6 8.9 L22 9.2 L16.2 13.8 L18.2 21 L12 16.9 L5.8 21 L7.8 13.8 L2 9.2 L9.4 8.9 Z"/>' }
         ];
+
+        // ===== 雰囲気（描き方）の選択肢 =====
+        // セッションで項目を足すときは、ここに追加して drawPoster 側の分岐を増やす
+        const STYLE_OPTIONS = {
+            layout: {
+                label: '文字の置き方',
+                choices: [
+                    { id: 'gallery',  label: '下に横書き' },
+                    { id: 'vertical', label: '右に縦書き' },
+                    { id: 'centered', label: 'まんなかに' },
+                    { id: 'bold',     label: '色の面と大きな文字' }
+                ]
+            },
+            background: {
+                label: '背景',
+                choices: [
+                    { id: 'paper', label: '紙' },
+                    { id: 'solid', label: '無地' },
+                    { id: 'washi', label: '和紙' },
+                    { id: 'glow',  label: '光' }
+                ]
+            },
+            frame: {
+                label: '枠',
+                choices: [
+                    { id: 'line',   label: '細い線' },
+                    { id: 'double', label: '二重線' },
+                    { id: 'corner', label: '角かざり' },
+                    { id: 'none',   label: 'なし' }
+                ]
+            },
+            font: {
+                label: '文字の形',
+                choices: [
+                    { id: 'mincho', label: '明朝', css: '"Shippori Mincho", serif' },
+                    { id: 'maru',   label: '丸ゴシック', css: '"Zen Maru Gothic", sans-serif' },
+                    { id: 'gothic', label: 'ゴシック', css: '"BIZ UDPGothic", sans-serif' }
+                ]
+            },
+            shapeStyle: {
+                label: '図形の描き方',
+                choices: [
+                    { id: 'soft',  label: 'すける' },
+                    { id: 'flat',  label: 'ぬりつぶし' },
+                    { id: 'line',  label: '線だけ' },
+                    { id: 'paper', label: '切り絵' }
+                ]
+            }
+        };
+        const DEFAULT_STYLE = { layout: 'gallery', background: 'paper', frame: 'line', font: 'mincho', shapeStyle: 'soft' };
+        function normalizeStyle(raw) {
+            const out = { ...DEFAULT_STYLE };
+            if (raw && typeof raw === 'object') {
+                Object.keys(STYLE_OPTIONS).forEach(key => {
+                    if (STYLE_OPTIONS[key].choices.some(c => c.id === raw[key])) out[key] = raw[key];
+                });
+            }
+            return out;
+        }
         const shapeTypeInfo = type => SHAPE_TYPES.find(t => t.id === type) || SHAPE_TYPES[0];
         function shapeIconSvg(type, color = 'currentColor', size = 24) {
             return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" style="color:${color}" aria-hidden="true">${shapeTypeInfo(type).icon}</svg>`;
@@ -473,7 +544,8 @@
             message: '',
             showSwatchLabels: true,
             shapes: [],
-            selectedId: null,
+            style: { ...DEFAULT_STYLE },
+            selectedId: null
         };
 
         const $ = id => document.getElementById(id);
@@ -533,8 +605,16 @@
         function selectedShape() {
             return state.shapes.find(s => s.id === state.selectedId) || null;
         }
+        // 図形をならべる中心は、文字の置き方によって変わる
+        // （「色の面」の高さは文字の量で変わるので、最後に描いたときの値を使う）
+        let boldPanel = { x: 48, y: 48, w: W - 96, h: 700 };
         function getLayout() {
-            return { centerX: W / 2, centerY: H / 2 - 80, baseSize: BASE_SIZE * state.scale };
+            const layout = state.style.layout;
+            let centerX = W / 2, centerY = H / 2 - 80;
+            if (layout === 'vertical') { centerX = 335; centerY = 480; }
+            else if (layout === 'centered') { centerY = 450; }
+            else if (layout === 'bold') { centerX = boldPanel.x + boldPanel.w / 2; centerY = boldPanel.y + boldPanel.h / 2; }
+            return { centerX, centerY, baseSize: BASE_SIZE * state.scale };
         }
         function shapeGeometry(shape) {
             const { centerX, centerY, baseSize } = getLayout();
@@ -576,6 +656,32 @@
                 p.closePath();
             } else if (type === 'wave') {
                 p.ellipse(0, 0, r * 1.3, r * 0.65, 0, 0, Math.PI * 2);
+            } else if (type === 'ring') {
+                // 外側の円と、逆回りの内側の円で穴をあける
+                p.arc(0, 0, r, 0, Math.PI * 2);
+                p.moveTo(r * 0.62, 0);
+                p.arc(0, 0, r * 0.62, 0, Math.PI * 2, true);
+            } else if (type === 'quarter') {
+                const a = r * 0.7;
+                p.moveTo(-a, a);
+                p.lineTo(-a, -a);
+                p.arc(-a, a, a * 2, -Math.PI / 2, 0, false);
+                p.closePath();
+            } else if (type === 'line') {
+                p.rect(-r * 1.2, -r * 0.04, r * 2.4, r * 0.08);
+            } else if (type === 'leaf') {
+                p.moveTo(0, -r);
+                p.quadraticCurveTo(r * 0.75, 0, 0, r);
+                p.quadraticCurveTo(-r * 0.75, 0, 0, -r);
+                p.closePath();
+            } else if (type === 'star') {
+                for (let i = 0; i < 10; i++) {
+                    const rr = i % 2 === 0 ? r : r * 0.42;
+                    const a = (i * 36 - 90) * Math.PI / 180;
+                    if (i === 0) p.moveTo(rr * Math.cos(a), rr * Math.sin(a));
+                    else p.lineTo(rr * Math.cos(a), rr * Math.sin(a));
+                }
+                p.closePath();
             }
             return p;
         }
@@ -629,6 +735,7 @@
                 title: state.title,
                 message: state.message,
                 showSwatchLabels: state.showSwatchLabels,
+                style: { ...state.style },
                 shapes: state.shapes.map(s => ({ ...s }))
             };
         }
@@ -643,6 +750,7 @@
             state.title = w.title;
             state.message = w.message || '';
             state.showSwatchLabels = w.showSwatchLabels !== false;
+            state.style = normalizeStyle(w.style);
             state.shapes = w.shapes.map(s => ({ ...s }));
             if (!selectedShape()) state.selectedId = null;
         }
@@ -732,6 +840,7 @@
                 title: str(raw.title, 40),
                 message: str(raw.message, 90),
                 showSwatchLabels: raw.showSwatchLabels !== false,
+                style: normalizeStyle(raw.style),
                 shapes
             };
         }
@@ -802,7 +911,7 @@
             return {
                 mood: 'calm', presetIndex: 0, palette, bgId: null,
                 author: '', scale: 1, showGuide: false,
-                title: 'わたしのギャラリー', message: '', showSwatchLabels: true, shapes
+                title: 'わたしのギャラリー', message: '', showSwatchLabels: true, style: { ...DEFAULT_STYLE }, shapes
             };
         }
 
@@ -1021,7 +1130,10 @@
                 document.fonts.load('500 11px "Montserrat"'),
                 document.fonts.load('600 44px "Shippori Mincho"', 'あ漢'),
                 document.fonts.load('400 16px "Shippori Mincho"', 'あ漢'),
-                document.fonts.load('500 15px "Shippori Mincho"', 'あ漢')
+                document.fonts.load('500 15px "Shippori Mincho"', 'あ漢'),
+                document.fonts.load('700 40px "Zen Maru Gothic"', 'あ漢'),
+                document.fonts.load('500 16px "Zen Maru Gothic"', 'あ漢'),
+                document.fonts.load('700 40px "BIZ UDPGothic"', 'あ漢')
             ];
             const timeout = new Promise(resolve => setTimeout(resolve, 3000));
             return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]).catch(() => {});
@@ -1038,6 +1150,7 @@
             renderAuthor();
             renderMoodTabs();
             renderPresetList();
+            renderStyleOptions();
             renderPaletteList();
             renderShapeAdd();
             renderShapeList();
@@ -1112,6 +1225,27 @@
                 requestDraw();
                 commit();
                 showToast(`「${PALETTE_DATA[state.mood][idx].name}」をたたき台にしました`);
+            }));
+        }
+
+        // ===== 雰囲気（描き方） =====
+        function renderStyleOptions() {
+            const wrap = $('style-options');
+            wrap.innerHTML = Object.entries(STYLE_OPTIONS).map(([key, opt]) => `
+                <div role="group" aria-label="${opt.label}">
+                    <p class="label">${opt.label}</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${opt.choices.map(c => `
+                            <button type="button" data-key="${key}" data-val="${c.id}" class="style-btn btn btn-sm ${state.style[key] === c.id ? 'btn-on' : ''}" aria-pressed="${state.style[key] === c.id}" ${c.css ? `style="font-family:${c.css}"` : ''}>${c.label}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            wrap.querySelectorAll('.style-btn').forEach(btn => btn.addEventListener('click', () => {
+                state.style[btn.dataset.key] = btn.dataset.val;
+                renderStyleOptions();
+                requestDraw();
+                commit();
             }));
         }
 
@@ -1704,107 +1838,217 @@
                 if (canvas.width !== W * DISPLAY_K) { canvas.width = W * DISPLAY_K; canvas.height = H * DISPLAY_K; }
                 k = DISPLAY_K;
             }
+            const st = state.style;
             const bg = getBgColor().hex;
             const text = getTextColors();
 
             ctx.setTransform(k, 0, 0, k, 0, 0);
+            ctx.globalAlpha = 1;
+            ctx.shadowColor = 'transparent';
 
-            // 背景：高級紙のようなマットグラデーション
-            const bgGradient = ctx.createLinearGradient(0, 0, W, H);
-            bgGradient.addColorStop(0, bg);
-            bgGradient.addColorStop(1, adjustBrightness(bg, -8));
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, W, H);
+            drawBackground(bg, text, st.background);
 
-            // 内側の極細ボーダー（額縁のエッジ）
-            ctx.strokeStyle = mixHex(bg, text.main, 0.22);
-            ctx.lineWidth = 1;
-            ctx.strokeRect(48, 48, W - 96, H - 96);
+            // 文字の位置を先に決める（「色の面」の高さや縦書きの長さは文字の量で決まる）
+            const plan = planTypography(text);
+            if (st.layout === 'bold') {
+                boldPanel = { x: 48, y: 48, w: W - 96, h: Math.max(480, plan.top - 34 - 48) };
+                ctx.fillStyle = getPanelColor();
+                ctx.fillRect(boldPanel.x, boldPanel.y, boldPanel.w, boldPanel.h);
+            }
+            drawFrame(bg, text, st.frame);
 
             const { centerX, centerY, baseSize } = getLayout();
 
-            // 背景の円形幾何学スタンプ
-            ctx.strokeStyle = mixHex(bg, text.main, 0.14);
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, baseSize * 1.5, 0, Math.PI * 2);
-            ctx.stroke();
+            // 背景の円形の線（色の面のときは描かない）
+            if (st.layout !== 'bold') {
+                ctx.strokeStyle = mixHex(bg, text.main, 0.14);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, baseSize * 1.5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
 
-            // 各図形（半透明で重ねる）
-            state.shapes.forEach(s => {
-                const g = shapeGeometry(s);
-                const color = getShapeHex(s);
-                ctx.save();
-                ctx.translate(g.cx, g.cy);
-                ctx.rotate(g.rot);
-                // 影の大きさは座標変換の影響を受けないので倍率を掛ける
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-                ctx.shadowBlur = 24 * k;
-                ctx.shadowOffsetY = 10 * k;
-                if (s.type === 'double-circle') {
-                    drawDoubleCircle(g.r, color, mixHex(color, bg, 0.55), text.main);
-                } else {
-                    ctx.fillStyle = color;
-                    ctx.globalAlpha = 0.86;
-                    ctx.fill(shapePath(s.type, g.r));
-                }
-                ctx.restore();
-            });
+            // 図形（色の面のときは面の中だけに描く）
+            ctx.save();
+            if (st.layout === 'bold') {
+                ctx.beginPath();
+                ctx.rect(boldPanel.x, boldPanel.y, boldPanel.w, boldPanel.h);
+                ctx.clip();
+            }
+            state.shapes.forEach(s => drawShape(s, bg, text, k));
+            ctx.restore();
 
-            drawHotelTypography(text);
+            plan.ops.forEach(op => op());
 
             // 選択中の図形の枠とつまみ（画面だけ。保存・印刷には出さない）
             const sel = selectedShape();
-            if (!exporting && sel) {
-                const g = shapeGeometry(sel);
-                const px = cssToDesign();
-                if (state.showGuide) {
-                    ctx.save();
-                    ctx.translate(g.cx, g.cy);
-                    ctx.rotate(g.rot);
-                    ctx.strokeStyle = '#E11D48';
-                    ctx.lineWidth = 2.5 * px;
-                    ctx.setLineDash([8 * px, 5 * px]);
-                    const outline = shapePath(sel.type, g.r + 10 * px);
-                    ctx.stroke(outline);
-                    ctx.restore();
-                }
-                const kp = knobPosition(sel);
-                const kr = 15 * px;
+            if (!exporting && sel) drawSelection(sel, k);
+        }
+
+        // ----- 背景 -----
+        // 毎回おなじ模様になるよう、決まった種から乱数をつくる
+        function seededRandom(seed) {
+            let a = seed >>> 0;
+            return () => {
+                a = (a + 0x6D2B79F5) >>> 0;
+                let t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+        function drawBackground(bg, text, kind) {
+            if (kind === 'solid') {
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, W, H);
+                return;
+            }
+            if (kind === 'glow') {
+                // 図形のあたりがほんのり明るい光
+                const { centerX, centerY } = getLayout();
+                const light = luminance(bg) > 0.5;
+                const g = ctx.createRadialGradient(centerX, centerY - 40, 0, centerX, centerY - 40, 820);
+                g.addColorStop(0, adjustBrightness(bg, light ? 6 : 16));
+                g.addColorStop(0.55, bg);
+                g.addColorStop(1, adjustBrightness(bg, light ? -12 : -6));
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, W, H);
+                return;
+            }
+            // 紙：ゆるやかなグラデーション
+            const g = ctx.createLinearGradient(0, 0, W, H);
+            g.addColorStop(0, bg);
+            g.addColorStop(1, adjustBrightness(bg, -8));
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+            if (kind === 'washi') {
+                // 和紙：細い繊維と小さな粒
+                const rnd = seededRandom(20261128);
                 ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.35)';
-                ctx.shadowBlur = 6 * k;
-                ctx.fillStyle = '#FFFFFF';
-                ctx.strokeStyle = '#1C1917';
-                ctx.lineWidth = 2.5 * px;
-                ctx.beginPath();
-                ctx.arc(kp.x, kp.y, kr, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowColor = 'transparent';
-                ctx.stroke();
-                // 斜めの矢印（大きさを変えられる印）
-                const a = kr * 0.45;
-                ctx.lineWidth = 2 * px;
-                ctx.beginPath();
-                ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x + a, kp.y + a);
-                ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x - a + a * 0.8, kp.y - a);
-                ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x - a, kp.y - a + a * 0.8);
-                ctx.moveTo(kp.x + a, kp.y + a); ctx.lineTo(kp.x + a - a * 0.8, kp.y + a);
-                ctx.moveTo(kp.x + a, kp.y + a); ctx.lineTo(kp.x + a, kp.y + a - a * 0.8);
-                ctx.stroke();
+                ctx.strokeStyle = text.main;
+                ctx.fillStyle = text.main;
+                for (let i = 0; i < 170; i++) {
+                    const x = rnd() * W, y = rnd() * H;
+                    const len = 18 + rnd() * 60, ang = rnd() * Math.PI * 2;
+                    ctx.globalAlpha = 0.035 + rnd() * 0.04;
+                    ctx.lineWidth = 0.5 + rnd() * 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.quadraticCurveTo(x + Math.cos(ang + 0.6) * len * 0.5, y + Math.sin(ang + 0.6) * len * 0.5, x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+                    ctx.stroke();
+                }
+                for (let i = 0; i < 320; i++) {
+                    ctx.globalAlpha = 0.04 + rnd() * 0.05;
+                    ctx.beginPath();
+                    ctx.arc(rnd() * W, rnd() * H, 0.4 + rnd() * 1.1, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 ctx.restore();
             }
         }
 
-        function drawDoubleCircle(radius, outerColor, innerColor, accentColor) {
+        // ----- 枠 -----
+        function drawFrame(bg, text, kind) {
+            if (kind === 'none') return;
+            const c = mixHex(bg, text.main, 0.25);
             ctx.save();
-            ctx.globalAlpha = 0.88;
+            ctx.strokeStyle = c;
+            if (kind === 'double') {
+                ctx.lineWidth = 1.6;
+                ctx.strokeRect(38, 38, W - 76, H - 76);
+                ctx.lineWidth = 0.8;
+                ctx.strokeRect(48, 48, W - 96, H - 96);
+            } else if (kind === 'corner') {
+                ctx.lineWidth = 0.8;
+                ctx.globalAlpha = 0.6;
+                ctx.strokeRect(48, 48, W - 96, H - 96);
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = 2;
+                const m = 34, len = 64;
+                [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].forEach(([x, y, sx, sy]) => {
+                    ctx.beginPath();
+                    ctx.moveTo(x + sx * len, y);
+                    ctx.lineTo(x, y);
+                    ctx.lineTo(x, y + sy * len);
+                    ctx.stroke();
+                    ctx.fillStyle = c;
+                    ctx.save();
+                    ctx.translate(x + sx * 9, y + sy * 9);
+                    ctx.rotate(Math.PI / 4);
+                    ctx.fillRect(-3, -3, 6, 6);
+                    ctx.restore();
+                });
+            } else {
+                ctx.lineWidth = 1;
+                ctx.strokeRect(48, 48, W - 96, H - 96);
+            }
+            ctx.restore();
+        }
+
+        // 「色の面」の色：背景と文字の色以外で、いちばん色みの強い色
+        function getPanelColor() {
+            const bg = getBgColor();
+            const text = getTextColors();
+            const chroma = hex => { const { r, g, b } = hexToRgb(hex); return Math.max(r, g, b) - Math.min(r, g, b); };
+            const cands = state.palette.filter(c => c.id !== bg.id && c.hex !== text.main);
+            if (!cands.length) return mixHex(bg.hex, text.main, 0.15);
+            return cands.reduce((best, c) => (chroma(c.hex) > chroma(best.hex) ? c : best)).hex;
+        }
+
+        // ----- 図形 -----
+        function drawShape(s, bg, text, k) {
+            const g = shapeGeometry(s);
+            const color = getShapeHex(s);
+            const mode = state.style.shapeStyle;
+            ctx.save();
+            ctx.translate(g.cx, g.cy);
+            ctx.rotate(g.rot);
+            // 影の大きさは座標変換の影響を受けないので倍率を掛ける
+            if (mode === 'soft') {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+                ctx.shadowBlur = 24 * k;
+                ctx.shadowOffsetY = 10 * k;
+            } else if (mode === 'paper') {
+                // 切り絵：ぼかさない、ずらした影
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 5 * k;
+                ctx.shadowOffsetY = 7 * k;
+            }
+            const alpha = mode === 'soft' ? 0.86 : 1;
+            if (mode === 'line') {
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = Math.max(2.5, g.r * 0.045);
+                ctx.lineJoin = 'round';
+                if (s.type === 'double-circle') {
+                    [1, 0.78, 0.45].forEach(f => { ctx.beginPath(); ctx.arc(0, 0, g.r * f, 0, Math.PI * 2); ctx.stroke(); });
+                    ctx.beginPath(); ctx.arc(0, 0, g.r * 0.12, 0, Math.PI * 2); ctx.fill();
+                } else if (s.type === 'line') {
+                    ctx.fill(shapePath(s.type, g.r));
+                } else {
+                    ctx.stroke(shapePath(s.type, g.r));
+                }
+            } else if (s.type === 'double-circle') {
+                drawDoubleCircle(g.r, color, mixHex(color, bg, 0.55), text.main, mode === 'soft');
+            } else {
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = color;
+                ctx.fill(shapePath(s.type, g.r));
+            }
+            ctx.restore();
+        }
+
+        function drawDoubleCircle(radius, outerColor, innerColor, accentColor, translucent = true) {
+            ctx.save();
+            ctx.globalAlpha = translucent ? 0.88 : 1;
             ctx.strokeStyle = outerColor;
             ctx.lineWidth = radius * 0.14;
             ctx.beginPath();
             ctx.arc(0, 0, radius, 0, Math.PI * 2);
             ctx.stroke();
 
-            ctx.globalAlpha = 0.92;
+            ctx.globalAlpha = translucent ? 0.92 : 1;
             ctx.fillStyle = innerColor;
             ctx.beginPath();
             ctx.arc(0, 0, radius * 0.45, 0, Math.PI * 2);
@@ -1814,6 +2058,46 @@
             ctx.beginPath();
             ctx.arc(0, 0, radius * 0.12, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
+        }
+
+        // ----- 選択中の図形の枠とつまみ -----
+        function drawSelection(sel, k) {
+            const g = shapeGeometry(sel);
+            const px = cssToDesign();
+            if (state.showGuide) {
+                ctx.save();
+                ctx.translate(g.cx, g.cy);
+                ctx.rotate(g.rot);
+                ctx.strokeStyle = '#E11D48';
+                ctx.lineWidth = 2.5 * px;
+                ctx.setLineDash([8 * px, 5 * px]);
+                ctx.stroke(shapePath(sel.type, g.r + 10 * px));
+                ctx.restore();
+            }
+            const kp = knobPosition(sel);
+            const kr = 15 * px;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowBlur = 6 * k;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#1C1917';
+            ctx.lineWidth = 2.5 * px;
+            ctx.beginPath();
+            ctx.arc(kp.x, kp.y, kr, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+            ctx.stroke();
+            // 斜めの矢印（大きさを変えられる印）
+            const a = kr * 0.45;
+            ctx.lineWidth = 2 * px;
+            ctx.beginPath();
+            ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x + a, kp.y + a);
+            ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x - a + a * 0.8, kp.y - a);
+            ctx.moveTo(kp.x - a, kp.y - a); ctx.lineTo(kp.x - a, kp.y - a + a * 0.8);
+            ctx.moveTo(kp.x + a, kp.y + a); ctx.lineTo(kp.x + a - a * 0.8, kp.y + a);
+            ctx.moveTo(kp.x + a, kp.y + a); ctx.lineTo(kp.x + a, kp.y + a - a * 0.8);
+            ctx.stroke();
             ctx.restore();
         }
 
@@ -1857,6 +2141,30 @@
         // ===== ポスターの文字組み =====
         const MINCHO = '"Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif';
         const hasJapanese = s => /[^\x00-\x7F]/.test(s);
+
+        // 文字の形（明朝・丸ゴシック・ゴシック）ごとの書体
+        function fontSet() {
+            const f = state.style.font;
+            if (f === 'maru') {
+                return {
+                    title: size => `700 ${size}px "Zen Maru Gothic", sans-serif`,
+                    body: (size, w = 500) => `${w} ${size}px "Zen Maru Gothic", sans-serif`,
+                    spacing: (size, jp) => (jp ? size * 0.04 : 1)
+                };
+            }
+            if (f === 'gothic') {
+                return {
+                    title: size => `700 ${size}px "BIZ UDPGothic", sans-serif`,
+                    body: (size, w = 400) => `${w} ${size}px "BIZ UDPGothic", sans-serif`,
+                    spacing: (size, jp) => (jp ? size * 0.05 : 1)
+                };
+            }
+            return {
+                title: (size, jp) => (jp ? `600 ${size}px ${MINCHO}` : `600 ${size}px "Cinzel", ${MINCHO}`),
+                body: (size, w = 400) => `${w} ${size}px ${MINCHO}`,
+                spacing: (size, jp) => (jp ? size * 0.06 : 2)
+            };
+        }
 
         // 日本語の追加字形（Google Fonts は文字ごとに分割配信）を先に読み込ませる。読み込み後は loadingdone で描き直される
         const requestedGlyphs = new Set();
@@ -1907,122 +2215,236 @@
             return chars.join('') + '…';
         }
 
-        // タイトル：大きい文字から試し、おさまる大きさを選ぶ（40px以上は1行、それより小さければ2行まで）
-        function titleFont(size, jp) {
-            return jp ? `600 ${size}px ${MINCHO}` : `600 ${size}px "Cinzel", ${MINCHO}`;
-        }
-        function layoutTitle(title, maxWidth) {
+        // タイトル（横書き）：大きい文字から試し、おさまる大きさを選ぶ（40px以上は1行、それより小さければ2行まで）
+        function layoutTitle(title, maxWidth, maxSize = 56) {
             const jp = hasJapanese(title);
-            for (let size = 56; size >= 24; size -= 2) {
-                const font = titleFont(size, jp);
-                const spacing = jp ? size * 0.06 : 2;
+            const fs = fontSet();
+            for (let size = maxSize; size >= 24; size -= 2) {
+                const font = fs.title(size, jp);
+                const spacing = fs.spacing(size, jp);
                 ctx.font = font;
                 const lines = wrapText(title, maxWidth, spacing);
-                if (lines.length <= (size >= 40 ? 1 : 2)) {
-                    return { font, spacing, lines, lineHeight: size * 1.25 };
-                }
+                if (lines.length <= (size >= 40 ? 1 : 2)) return { font, spacing, lines, lineHeight: size * 1.25 };
             }
-            const font = titleFont(24, jp);
-            const spacing = jp ? 24 * 0.06 : 2;
+            const font = fs.title(24, jp);
+            const spacing = fs.spacing(24, jp);
             ctx.font = font;
             return { font, spacing, lines: wrapText(title, maxWidth, spacing, 2), lineHeight: 30 };
         }
 
-        function drawHotelTypography(text) {
+        // ----- 縦書き -----
+        const V_ROTATE = 'ー－—―…‥〜～（）「」『』【】〈〉《》〔〕()[]-=＝';
+        const V_PUNCT = '、。，．';
+        const V_SMALL = 'ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ';
+        // 縦書きのタイトル：右から左へ最大2列。おさまる大きさを選ぶ
+        function layoutVerticalTitle(title, maxHeight) {
+            const fs = fontSet();
+            const chars = [...title.replace(/\s+/g, '　')];
+            for (let size = 66; size >= 26; size -= 2) {
+                const step = size * 1.08;
+                const perCol = Math.max(1, Math.floor(maxHeight / step));
+                const cols = Math.ceil(chars.length / perCol);
+                if (cols <= (size >= 44 ? 1 : 2)) return { font: fs.title(size, true), size, step, perCol, chars };
+            }
+            const size = 26, step = size * 1.08, perCol = Math.max(1, Math.floor(maxHeight / step));
+            let kept = chars;
+            if (chars.length > perCol * 2) kept = [...chars.slice(0, perCol * 2 - 1), '…'];
+            return { font: fs.title(size, true), size, step, perCol, chars: kept };
+        }
+        function drawVerticalChars(vt, xRight, yTop) {
             ctx.save();
-            ctx.textBaseline = 'alphabetic';
-            const preset = PALETTE_DATA[state.mood][state.presetIndex] || PALETTE_DATA.calm[0];
+            ctx.font = vt.font;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            vt.chars.forEach((ch, i) => {
+                const col = Math.floor(i / vt.perCol), row = i % vt.perCol;
+                const cx = xRight - vt.size / 2 - col * vt.size * 1.45;
+                const cy = yTop + vt.step * row + vt.step / 2;
+                if (V_ROTATE.includes(ch)) {
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillText(ch, 0, 0);
+                    ctx.restore();
+                } else if (V_PUNCT.includes(ch)) {
+                    ctx.fillText(ch, cx + vt.size * 0.6, cy - vt.size * 0.6);
+                } else if (V_SMALL.includes(ch)) {
+                    ctx.fillText(ch, cx + vt.size * 0.12, cy - vt.size * 0.12);
+                } else {
+                    ctx.fillText(ch, cx, cy);
+                }
+            });
+            ctx.restore();
+        }
+
+        // 文字の位置を下から順に決め、描く処理（ops）と、いちばん上の位置（top）を返す
+        function planTypography(text) {
+            const st = state.style;
+            const fs = fontSet();
+            const ops = [];
+            const centered = st.layout === 'centered';
             const left = 72, right = W - 72, maxWidth = right - left;
+            const ax = centered ? W / 2 : left;
+            const align = centered ? 'center' : 'left';
+            const preset = PALETTE_DATA[state.mood][state.presetIndex] || PALETTE_DATA.calm[0];
+            const n = state.palette.length;
 
-            // 上部コレクション表記
-            ctx.fillStyle = text.sub;
-            ctx.font = '500 11px "Montserrat", sans-serif';
-            fillSpacedText(`COLLECTION NO. 0${state.presetIndex + 1} — HOTEL GALLERY EDITION`, left, 90, 5);
+            // 上部の小さな英字
+            const topLabel = `COLLECTION NO. 0${state.presetIndex + 1} — HOTEL GALLERY EDITION`;
+            ops.push(() => {
+                let color = text.sub;
+                if (st.layout === 'bold') {
+                    const panel = getPanelColor();
+                    color = contrast(panel, '#111111') > contrast(panel, '#FFFFFF') ? '#1C1C1C' : '#F5F3EE';
+                }
+                ctx.fillStyle = color;
+                ctx.font = '500 11px "Montserrat", sans-serif';
+                fillSpacedText(topLabel, centered ? W / 2 : left + (st.layout === 'bold' ? 18 : 0), st.layout === 'bold' ? 86 : 90, 5, align);
+            });
 
-            // --- 下から順に位置を決める ---
-            // フッター：作者名
+            // フッター：作者名と小さな英字
             const footerY = H - 66;
             const author = state.author.trim();
             if (author) {
+                ops.push(() => {
+                    ctx.font = fs.body(15, 500);
+                    ensureGlyphs(ctx.font, '作' + author);
+                    ctx.fillStyle = text.main;
+                    const label = `作　${truncateToWidth(author, 300)}`;
+                    if (centered) {
+                        fillSpacedText(label, W / 2, footerY, 1, 'center');
+                    } else {
+                        ctx.fillStyle = text.sub;
+                        ctx.font = '400 9px "Montserrat", sans-serif';
+                        fillSpacedText('ARTIST', left, footerY, 3);
+                        ctx.fillStyle = text.main;
+                        ctx.font = fs.body(15, 500);
+                        fillSpacedText(label, left + 64, footerY, 1);
+                    }
+                });
+            }
+            ops.push(() => {
                 ctx.fillStyle = text.sub;
                 ctx.font = '400 9px "Montserrat", sans-serif';
-                fillSpacedText('ARTIST', left, footerY, 3);
-                ctx.font = `500 15px ${MINCHO}`;
-                ensureGlyphs(ctx.font, '作' + author);
-                ctx.fillStyle = text.main;
-                fillSpacedText(`作　${truncateToWidth(author, 300)}`, left + 64, footerY, 1);
-            }
-            ctx.fillStyle = text.sub;
-            ctx.font = '400 9px "Montserrat", sans-serif';
-            fillSpacedText('© 2026 HOTEL GALLERY EDITION', right, H - 40, 1.5, 'right');
+                fillSpacedText('© 2026 HOTEL GALLERY EDITION', centered ? W / 2 : right, H - 40, 1.5, centered ? 'center' : 'right');
+            });
 
-            // 色見本（スウォッチ）と、その下の色の名前・思い出
-            const n = state.palette.length;
-            const blockWidth = maxWidth / n;
+            // 色見本：横に並べた帯（まんなかの配置では丸）と、その下の色の名前・思い出
             const anyMemory = state.palette.some(c => c.memory.trim());
             const labelH = state.showSwatchLabels ? (anyMemory ? 48 : 20) : 14;
             const barHeight = 22;
             const barY = footerY - 34 - labelH - barHeight;
-            state.palette.forEach((c, i) => {
-                const x0 = left + i * blockWidth;
-                ctx.fillStyle = c.hex;
-                ctx.fillRect(x0, barY, blockWidth, barHeight);
-                const cx = x0 + blockWidth / 2;
-                const inner = blockWidth - 8;
-                if (state.showSwatchLabels) {
-                    // 色の名前
-                    ctx.font = `600 ${n > 7 ? 11 : 12}px ${MINCHO}`;
-                    const name = c.name.trim() || c.hex;
-                    ensureGlyphs(ctx.font, name);
-                    const nameShown = truncateToWidth(name, inner);
-                    ctx.fillStyle = text.main;
-                    fillSpacedText(nameShown, cx, barY + barHeight + 19, 0, 'center');
-                    // 思い出（2行まで）
-                    if (c.memory.trim()) {
-                        ctx.font = `400 ${n > 7 ? 9 : 10}px ${MINCHO}`;
-                        ensureGlyphs(ctx.font, c.memory);
-                        ctx.fillStyle = text.sub;
-                        wrapText(c.memory.trim(), inner, 0, 2).forEach((ln, li) => {
-                            fillSpacedText(ln, cx, barY + barHeight + 35 + li * 14, 0, 'center');
-                        });
+            ops.push(() => {
+                const itemW = centered ? Math.min(118, maxWidth / n) : maxWidth / n;
+                const startX = centered ? W / 2 - (itemW * n) / 2 : left;
+                state.palette.forEach((c, i) => {
+                    const x0 = startX + i * itemW;
+                    const cx = x0 + itemW / 2;
+                    ctx.fillStyle = c.hex;
+                    if (centered) {
+                        ctx.beginPath();
+                        ctx.arc(cx, barY + barHeight / 2, 12, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = mixHex(c.hex, text.main, 0.25);
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    } else {
+                        ctx.fillRect(x0, barY, itemW, barHeight);
                     }
-                } else {
-                    ctx.fillStyle = text.sub;
-                    ctx.font = '400 9px "Montserrat", monospace';
-                    fillSpacedText(c.hex, cx, barY + barHeight + 15, 1, 'center');
-                }
+                    const inner = itemW - 8;
+                    if (state.showSwatchLabels) {
+                        ctx.font = fs.body(n > 7 ? 11 : 12, 600);
+                        const name = c.name.trim() || c.hex;
+                        ensureGlyphs(ctx.font, name);
+                        ctx.fillStyle = text.main;
+                        fillSpacedText(truncateToWidth(name, inner), cx, barY + barHeight + 19, 0, 'center');
+                        if (c.memory.trim()) {
+                            ctx.font = fs.body(n > 7 ? 9 : 10, 400);
+                            ensureGlyphs(ctx.font, c.memory);
+                            ctx.fillStyle = text.sub;
+                            wrapText(c.memory.trim(), inner, 0, 2).forEach((ln, li) => {
+                                fillSpacedText(ln, cx, barY + barHeight + 35 + li * 14, 0, 'center');
+                            });
+                        }
+                    } else {
+                        ctx.fillStyle = text.sub;
+                        ctx.font = '400 9px "Montserrat", monospace';
+                        fillSpacedText(c.hex, cx, barY + barHeight + 15, 1, 'center');
+                    }
+                });
             });
 
-            // ひとこと（3行まで）
+            // ひとこと（3行まで。色の面のときは2行まで）
             let cursorY = barY - 30;
             const message = state.message.trim();
             if (message) {
-                ctx.font = `400 16px ${MINCHO}`;
-                ensureGlyphs(ctx.font, '「」' + message);
-                const lines = wrapText(`「${message}」`, maxWidth, 0.5, 3);
+                ctx.font = fs.body(16, 400);
+                const lines = wrapText(`「${message}」`, maxWidth, 0.5, st.layout === 'bold' ? 2 : 3);
                 const lh = 27;
                 const top = cursorY - (lines.length - 1) * lh;
-                ctx.fillStyle = text.main;
-                lines.forEach((ln, i) => fillSpacedText(ln, left, top + i * lh, 0.5));
+                const font = ctx.font;
+                ops.push(() => {
+                    ctx.font = font;
+                    ensureGlyphs(font, '「」' + message);
+                    ctx.fillStyle = text.main;
+                    lines.forEach((ln, i) => fillSpacedText(ln, ax, top + i * lh, 0.5, align));
+                });
                 cursorY = top - lh - 8;
             }
 
             // サブタイトル（たたき台の配色名と色の数）
-            ctx.fillStyle = text.sub;
-            ctx.font = '400 12px "Montserrat", sans-serif';
-            fillSpacedText(`BASED ON “${preset.en.toUpperCase()}”  /  ${n} COLORS`, left, cursorY, 1.5);
+            const subY = cursorY;
+            ops.push(() => {
+                ctx.fillStyle = text.sub;
+                ctx.font = '400 12px "Montserrat", sans-serif';
+                fillSpacedText(`BASED ON “${preset.en.toUpperCase()}”  /  ${n} COLORS`, ax, subY, 1.5, align);
+            });
             cursorY -= 26;
 
-            // タイトル
             const title = state.title.trim() || 'わたしのギャラリー';
-            const tl = layoutTitle(title, maxWidth);
-            ctx.font = tl.font;
-            ensureGlyphs(tl.font, title);
-            ctx.fillStyle = text.main;
-            const titleTop = cursorY - (tl.lines.length - 1) * tl.lineHeight;
-            tl.lines.forEach((ln, i) => fillSpacedText(ln, left, titleTop + i * tl.lineHeight, tl.spacing));
+            if (st.layout === 'vertical') {
+                // 縦書きのタイトル：右上から、ひとことの上までの高さに入れる
+                const yTop = 128;
+                const vt = layoutVerticalTitle(title, Math.max(160, cursorY - 20 - yTop));
+                const xRight = right - 6;
+                const cols = Math.ceil(vt.chars.length / vt.perCol);
+                const colsWidth = vt.size + (cols - 1) * vt.size * 1.45;
+                const usedH = Math.min(vt.chars.length, vt.perCol) * vt.step;
+                ops.push(() => {
+                    ensureGlyphs(vt.font, title);
+                    ctx.fillStyle = text.main;
+                    drawVerticalChars(vt, xRight, yTop);
+                    // タイトルの左に細い縦線
+                    ctx.strokeStyle = mixHex(getBgColor().hex, text.main, 0.35);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(xRight - colsWidth - 18, yTop + 6);
+                    ctx.lineTo(xRight - colsWidth - 18, yTop + usedH - 6);
+                    ctx.stroke();
+                });
+                return { top: cursorY, ops };
+            }
 
-            ctx.restore();
+            // タイトル（横書き）
+            const tl = layoutTitle(title, maxWidth, st.layout === 'bold' ? 64 : 56);
+            const titleTop = cursorY - (tl.lines.length - 1) * tl.lineHeight;
+            ops.push(() => {
+                ctx.font = tl.font;
+                ensureGlyphs(tl.font, title);
+                ctx.fillStyle = text.main;
+                tl.lines.forEach((ln, i) => fillSpacedText(ln, ax, titleTop + i * tl.lineHeight, tl.spacing, align));
+                if (centered) {
+                    // まんなかの配置：タイトルの上に短い飾り線
+                    const y = titleTop - tl.lineHeight * 0.9;
+                    ctx.strokeStyle = mixHex(getBgColor().hex, text.main, 0.4);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(W / 2 - 40, y); ctx.lineTo(W / 2 + 40, y);
+                    ctx.stroke();
+                }
+            });
+            const fontPx = parseFloat(tl.font.match(/(\d+)px/)[1]);
+            return { top: titleTop - fontPx, ops };
         }
 
         window.addEventListener('load', init);
