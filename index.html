@@ -115,39 +115,70 @@
         <!-- 操作パネル（左側） -->
         <section class="lg:col-span-5 space-y-6">
 
-            <!-- 1. お名前 -->
+            <!-- 1. テーマ -->
             <div class="panel">
-                <h2 class="step-title"><span class="step-no">01</span>お名前<span class="step-en">Artist</span></h2>
+                <h2 class="step-title"><span class="step-no">01</span>テーマをえらぶ<span class="step-en">Theme</span></h2>
+                <p class="help">好きなテーマを押すと、ポスターの案が3つできあがります。</p>
+                <div id="theme-list" class="grid grid-cols-2 gap-2"></div>
+            </div>
+
+            <!-- 2. 案 -->
+            <div class="panel scroll-mt-28" id="proposal-panel">
+                <h2 class="step-title"><span class="step-no">02</span>気に入った案をえらぶ<span class="step-en">Proposals</span></h2>
+                <p class="help" id="proposal-help"></p>
+                <div id="proposal-list" class="grid grid-cols-3 gap-2 sm:gap-3"></div>
+                <button type="button" id="btn-more-proposals" class="btn w-full"><i class="fa-solid fa-wand-magic-sparkles"></i>ほかの案を見る</button>
+            </div>
+
+            <!-- 3. ことば -->
+            <div class="panel">
+                <h2 class="step-title"><span class="step-no">03</span>ことばを入れる<span class="step-en">Words</span></h2>
+                <div>
+                    <label for="poster-title" class="label">作品のタイトル</label>
+                    <input type="text" id="poster-title" class="field font-mincho text-lg" maxlength="40" placeholder="例：縁側の午後">
+                    <p class="help mt-1">日本語でも英語でも入れられます。長いときは自動で小さくなります。</p>
+                </div>
+                <div>
+                    <label for="poster-message" class="label">ひとこと</label>
+                    <textarea id="poster-message" class="field font-mincho leading-relaxed" rows="3" maxlength="90" placeholder="例：子どものころ過ごした家の縁側を思い出して作りました。"></textarea>
+                    <p class="help mt-1"><span id="message-count">0</span>／90文字。作品にこめた思いを書きましょう。</p>
+                </div>
                 <div>
                     <label for="author-name" class="label">お名前（呼び名）</label>
                     <input type="text" id="author-name" class="field" maxlength="20" placeholder="例：さくら">
                     <p class="help mt-1">ポスターの下に「作」として入ります。入れなくてもかまいません。</p>
                 </div>
+                <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
+                    <input type="checkbox" id="show-swatch-labels" checked>
+                    ポスターの色見本の下に、色の名前と思い出をのせる
+                </label>
             </div>
 
-            <!-- 2. たたき台の配色 -->
-            <div class="panel">
-                <h2 class="step-title"><span class="step-no">02</span>たたき台の配色をえらぶ<span class="step-en">Atmosphere</span></h2>
-                <p class="help">まずは雰囲気の近い配色をひとつ選びましょう。あとから色を差し替えたり足したりできます。</p>
-                <div class="flex flex-wrap gap-2" id="mood-selector" role="tablist" aria-label="雰囲気"></div>
-                <div id="preset-list" class="space-y-2.5"></div>
-            </div>
+            <p class="font-mincho text-lg text-stone-200 px-1 pt-2">もっと自分らしくしたいときは、下を開いて直せます。</p>
 
-            <!-- 雰囲気（描き方） -->
-            <div class="panel">
-                <h2 class="step-title"><span class="step-no">02+</span>雰囲気を変える<span class="step-en">Style</span></h2>
+            <!-- 4. 雰囲気 -->
+            <details class="panel group">
+                <summary class="step-title cursor-pointer list-none min-h-[48px] items-center">
+                    <span class="step-no">04</span>雰囲気を変える
+                    <i class="fa-solid fa-chevron-down ml-auto text-stone-300 text-base transition-transform group-open:rotate-180"></i>
+                </summary>
                 <p class="help">文字の置き方や背景、図形の描き方を変えると、同じ色でもがらりと雰囲気が変わります。</p>
                 <div id="style-options" class="space-y-4"></div>
-            </div>
+            </details>
 
-            <!-- 3. 色 -->
-            <div class="panel">
-                <h2 class="step-title"><span class="step-no">03</span>色をととのえる<span class="step-en">Colors</span></h2>
+            <!-- 5. 色 -->
+            <details class="panel group">
+                <summary class="step-title cursor-pointer list-none min-h-[48px] items-center">
+                    <span class="step-no">05</span>色を変える
+                    <i class="fa-solid fa-chevron-down ml-auto text-stone-300 text-base transition-transform group-open:rotate-180"></i>
+                </summary>
+                <div>
+                    <p class="label">このテーマのほかの配色</p>
+                    <div id="preset-list" class="space-y-2.5"></div>
+                </div>
                 <p class="help">色の四角をタップすると色を変えられます。思い出の色や好きな色を足すこともできます。色の名前や思い出も自由に書けます。</p>
                 <div id="palette-list" class="space-y-3"></div>
-                <div class="grid grid-cols-1 gap-3">
-                    <button type="button" id="btn-add-color" class="btn"><i class="fa-solid fa-plus"></i>色を足す</button>
-                </div>
+                <button type="button" id="btn-add-color" class="btn w-full"><i class="fa-solid fa-plus"></i>色を足す</button>
 
                 <!-- 写真から色をひろう -->
                 <div class="subbox space-y-4" id="photo-tool">
@@ -170,19 +201,19 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </details>
 
-            <!-- 4. 形 -->
-            <div class="panel">
-                <h2 class="step-title"><span class="step-no">04</span>形をくみあわせる<span class="step-en">Composition</span></h2>
+            <!-- 6. 形 -->
+            <details class="panel group">
+                <summary class="step-title cursor-pointer list-none min-h-[48px] items-center">
+                    <span class="step-no">06</span>形を変える
+                    <i class="fa-solid fa-chevron-down ml-auto text-stone-300 text-base transition-transform group-open:rotate-180"></i>
+                </summary>
                 <p class="help">図形を足して、ポスターの上で指やマウスで動かしましょう。選んだ図形の右下に出る丸いつまみを引くと、大きさが変わります。</p>
-
                 <div>
                     <p class="label">図形を足す</p>
                     <div id="shape-add" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"></div>
                 </div>
-
-                <!-- 全体の大きさ -->
                 <div class="subbox space-y-1">
                     <div class="flex justify-between items-center">
                         <label for="shape-scale" class="font-bold text-stone-100">全体の大きさ</label>
@@ -190,42 +221,19 @@
                     </div>
                     <input type="range" id="shape-scale" min="0.5" max="1.6" step="0.1" value="1.0">
                 </div>
-
                 <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
                     <input type="checkbox" id="show-red-outline">
                     選択中の図形を示す枠を表示する
                 </label>
-
-                <!-- 図形ごとの設定 -->
                 <div>
                     <p class="label">置いた図形 <span class="font-normal text-stone-300">（上にあるものほど前に見えます）</span></p>
                     <div class="space-y-3" id="sub-shape-controls"></div>
                 </div>
-
-            </div>
-
-            <!-- 5. ことば -->
-            <div class="panel">
-                <h2 class="step-title"><span class="step-no">05</span>ポスターにことばを添える<span class="step-en">Words</span></h2>
-                <div>
-                    <label for="poster-title" class="label">作品のタイトル</label>
-                    <input type="text" id="poster-title" class="field font-mincho text-lg" maxlength="40" placeholder="例：縁側の午後">
-                    <p class="help mt-1">日本語でも英語でも入れられます。長いときは自動で小さくなり、2行までおさまります。</p>
-                </div>
-                <div>
-                    <label for="poster-message" class="label">ひとこと</label>
-                    <textarea id="poster-message" class="field font-mincho leading-relaxed" rows="3" maxlength="90" placeholder="例：子どものころ過ごした家の縁側を思い出して作りました。"></textarea>
-                    <p class="help mt-1"><span id="message-count">0</span>／90文字。作品にこめた思いや、話したことを書きましょう。</p>
-                </div>
-                <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
-                    <input type="checkbox" id="show-swatch-labels" checked>
-                    ポスターの色見本の下に、色の名前と思い出をのせる
-                </label>
-            </div>
+            </details>
         </section>
 
         <!-- ポスターのプレビュー（右側） -->
-        <section class="lg:col-span-7 lg:sticky lg:top-28 flex flex-col items-center">
+        <section class="lg:col-span-7 lg:sticky lg:top-28 flex flex-col items-center order-first lg:order-none">
             <div class="w-full panel flex flex-col items-center">
 
                 <div class="w-full flex flex-wrap items-center justify-between gap-3">
@@ -293,104 +301,241 @@
 
     <!-- JavaScript ロジック -->
     <script>
-        // ===== たたき台の配色 =====
-        const MOODS = [
-            { id: 'calm',      label: '静寂・コンクリート' },
-            { id: 'energetic', label: 'モダン・テラコッタ' },
-            { id: 'luxury',    label: '真鍮・ダークオーク' },
-            { id: 'natural',   label: '白木・リネン' },
-            { id: 'japanese',  label: '和の伝統色' }
+        // ===== テーマ =====
+        // テーマを選ぶと、ここに書いた候補の中から配色・構図・描き方を組み合わせて、案を自動でつくる。
+        //
+        // 新しいテーマを足すときは、下の形をまねて1つ追加する：
+        //   id           … 半角英字の名前（ほかと重ならないもの）
+        //   name / en    … 画面に出る名前 ／ ポスターに小さく入る英語名
+        //   desc         … テーマ選びのボタンに出る短い説明
+        //   palettes     … 配色（5色前後）。bg は背景にする色の番号（0から数える）
+        //   layouts      … 文字の置き方   gallery（下に横書き）/ vertical（右に縦書き）/ centered（まんなか）/ bold（色の面）
+        //   backgrounds  … 背景           paper（紙）/ solid（無地）/ washi（和紙）/ glow（光）
+        //   frames       … 枠             line / double / corner / none
+        //   fonts        … 文字の形       mincho（明朝）/ maru（丸ゴシック）/ gothic（ゴシック）
+        //   shapeStyles  … 図形の描き方   soft（すける）/ flat（ぬりつぶし）/ line（線だけ）/ paper（切り絵）
+        //   compositions … 構図           cluster（重ねる）/ stack（積む）/ orbit（めぐる）/ scatter（散らす）/ grid（ならべる）/ landscape（風景）/ diagonal（ななめ）
+        //   shapes       … 使う図形       SHAPE_TYPES の id
+        //   titles       … タイトルの例
+        const THEMES = [
+            {
+                id: 'lobby', name: '静かなホテルのロビー', en: 'Quiet Lobby', desc: 'コンクリートと光の、落ちついた空間',
+                palettes: [
+                    { name: '建築のコンクリート', bg: 4, colors: [
+                        { hex: '#1C1C1E', name: '炭色' }, { hex: '#3A3A3C', name: '打ちっぱなしの灰' }, { hex: '#636366', name: '鉛色' },
+                        { hex: '#AEAEB2', name: '霞の銀' }, { hex: '#F2F2F7', name: 'しっくいの白' }] },
+                    { name: '北欧のフィヨルド', bg: 4, colors: [
+                        { hex: '#11161A', name: '深い海の黒' }, { hex: '#232D36', name: '岩肌の青灰' }, { hex: '#485A6A', name: '鋼の青' },
+                        { hex: '#95A5B3', name: '氷河の霧' }, { hex: '#F4F6F8', name: '新雪の白' }] }
+                ],
+                layouts: ['gallery', 'centered'], backgrounds: ['paper', 'solid'], frames: ['line', 'double'],
+                fonts: ['mincho', 'gothic'], shapeStyles: ['soft', 'flat'], compositions: ['cluster', 'stack', 'orbit'],
+                shapes: ['circle', 'double-circle', 'arch', 'rect', 'half', 'line'],
+                titles: ['静けさの午後', 'ロビーの光', 'AESTHETIC SILENCE', '余白のある部屋']
+            },
+            {
+                id: 'spring', name: '春の庭', en: 'Spring Garden', desc: 'さくらと若葉、やわらかな日ざし',
+                palettes: [
+                    { name: 'さくらの庭', bg: 4, colors: [
+                        { hex: '#6B4F4F', name: '桜の幹' }, { hex: '#E8A1B0', name: '撫子色' }, { hex: '#F6C6CF', name: '桜色' },
+                        { hex: '#A8C97F', name: '若草色' }, { hex: '#FBF5F3', name: '花冷えの白' }] },
+                    { name: '菜の花畑', bg: 4, colors: [
+                        { hex: '#3E5641', name: '深い緑' }, { hex: '#F2C94C', name: '菜の花色' }, { hex: '#9CC5A1', name: '若葉' },
+                        { hex: '#F7E7B4', name: '卵色' }, { hex: '#FFFDF5', name: '春霞' }] }
+                ],
+                layouts: ['vertical', 'centered', 'gallery'], backgrounds: ['washi', 'paper', 'glow'], frames: ['corner', 'none', 'line'],
+                fonts: ['mincho', 'maru'], shapeStyles: ['soft', 'paper'], compositions: ['scatter', 'cluster'],
+                shapes: ['circle', 'leaf', 'half', 'ring', 'double-circle'],
+                titles: ['花のたより', '春のうたげ', 'さくら咲く庭', 'うららかな日']
+            },
+            {
+                id: 'summer', name: '夏の海辺', en: 'Summer Seaside', desc: '青い海と白い砂浜、夕焼けの浜',
+                palettes: [
+                    { name: '海と空', bg: 4, colors: [
+                        { hex: '#0B3C5D', name: '深い海' }, { hex: '#328CC1', name: '空色' }, { hex: '#D9B310', name: '砂浜の日差し' },
+                        { hex: '#8FC1E3', name: '浅瀬' }, { hex: '#F4F1E8', name: '白い砂' }] },
+                    { name: '夕暮れの浜', bg: 4, colors: [
+                        { hex: '#2E2A4F', name: '宵の空' }, { hex: '#E76F51', name: '夕焼け' }, { hex: '#F4A261', name: '浜の灯り' },
+                        { hex: '#2A9D8F', name: '夕凪の海' }, { hex: '#FDF0E0', name: '貝殻' }] }
+                ],
+                layouts: ['gallery', 'bold', 'centered'], backgrounds: ['paper', 'glow', 'solid'], frames: ['line', 'none'],
+                fonts: ['mincho', 'gothic', 'maru'], shapeStyles: ['flat', 'soft'], compositions: ['landscape', 'diagonal'],
+                shapes: ['half', 'band', 'circle', 'wave', 'line'],
+                titles: ['夏の終わりの海', '潮騒', '水平線', 'SEASIDE MEMORIES']
+            },
+            {
+                id: 'autumn', name: '秋の紅葉', en: 'Autumn Leaves', desc: '紅葉の山と、実りの季節',
+                palettes: [
+                    { name: '紅葉の山', bg: 4, colors: [
+                        { hex: '#3B2A20', name: '焦茶' }, { hex: '#B7282E', name: '茜色' }, { hex: '#E08A1E', name: '柿色' },
+                        { hex: '#C9A227', name: '黄金色' }, { hex: '#F5EEDC', name: '生成り' }] },
+                    { name: '栗と稲穂', bg: 4, colors: [
+                        { hex: '#4A3B2A', name: '栗皮色' }, { hex: '#8E5B3C', name: '胡桃色' }, { hex: '#D4A84B', name: '稲穂' },
+                        { hex: '#9C6644', name: '朽葉色' }, { hex: '#F3EBDD', name: '練色' }] }
+                ],
+                layouts: ['vertical', 'gallery'], backgrounds: ['washi', 'paper'], frames: ['corner', 'double'],
+                fonts: ['mincho'], shapeStyles: ['paper', 'soft'], compositions: ['scatter', 'stack', 'cluster'],
+                shapes: ['leaf', 'circle', 'half', 'quarter', 'triangle'],
+                titles: ['秋のたより', 'もみじ狩り', '実りの季節', '山の錦']
+            },
+            {
+                id: 'winter', name: '冬の雪景色', en: 'Winter Snow', desc: 'しんしんと降る雪と、あたたかな灯り',
+                palettes: [
+                    { name: '雪の夜', bg: 4, colors: [
+                        { hex: '#F4F6F8', name: '新雪' }, { hex: '#AFC4D6', name: '雪明かり' }, { hex: '#6E8BA8', name: '冬空' },
+                        { hex: '#C9A45C', name: '窓の灯り' }, { hex: '#14213D', name: '冬の夜' }] },
+                    { name: '雪の朝', bg: 4, colors: [
+                        { hex: '#2B3A4A', name: '鉄紺' }, { hex: '#8AA5BD', name: '薄氷' }, { hex: '#C7D7E5', name: '霜' },
+                        { hex: '#B04A4A', name: '南天の実' }, { hex: '#FAFCFD', name: '銀世界' }] }
+                ],
+                layouts: ['centered', 'vertical'], backgrounds: ['glow', 'solid'], frames: ['double', 'line', 'none'],
+                fonts: ['mincho'], shapeStyles: ['soft', 'line'], compositions: ['scatter', 'orbit'],
+                shapes: ['circle', 'star', 'ring', 'double-circle'],
+                titles: ['しんしんと', '雪の便り', '冬ごもり', '白い朝']
+            },
+            {
+                id: 'kissa', name: '昭和の喫茶店', en: 'Retro Kissaten', desc: 'クリームソーダとナポリタンの、なつかしい色',
+                palettes: [
+                    { name: 'クリームソーダ', bg: 4, colors: [
+                        { hex: '#4E342E', name: 'コーヒー' }, { hex: '#2E8B57', name: 'メロンソーダ' }, { hex: '#D9534F', name: 'さくらんぼ' },
+                        { hex: '#F0C987', name: 'プリン' }, { hex: '#FFF6E5', name: 'クリーム' }] },
+                    { name: 'ナポリタン', bg: 4, colors: [
+                        { hex: '#3D2B1F', name: '焦げ茶' }, { hex: '#C8553D', name: 'ケチャップ' }, { hex: '#E9A23B', name: 'からし色' },
+                        { hex: '#6A994E', name: 'ピーマン' }, { hex: '#F7EBD3', name: '生成りのクロス' }] }
+                ],
+                layouts: ['bold', 'centered', 'gallery'], backgrounds: ['solid', 'paper'], frames: ['double', 'corner'],
+                fonts: ['maru', 'gothic'], shapeStyles: ['flat', 'paper'], compositions: ['grid', 'stack', 'orbit'],
+                shapes: ['circle', 'half', 'quarter', 'rect', 'ring', 'band'],
+                titles: ['純喫茶', '午後のクリームソーダ', 'なつかしの味', 'レトロな午後']
+            },
+            {
+                id: 'kyoto', name: '京都の夜', en: 'Kyoto Night', desc: '提灯のあかりと、月夜の瓦屋根',
+                palettes: [
+                    { name: '祇園の夜', bg: 4, colors: [
+                        { hex: '#C9A45C', name: '金' }, { hex: '#B33E2E', name: '朱色' }, { hex: '#E8D9B5', name: '提灯のあかり' },
+                        { hex: '#3A3F58', name: '藍鼠' }, { hex: '#16151D', name: '漆黒' }] },
+                    { name: '月と瓦', bg: 4, colors: [
+                        { hex: '#D8C9A3', name: '月白' }, { hex: '#8C7853', name: '煤竹' }, { hex: '#5B6770', name: '瓦の色' },
+                        { hex: '#9E3D22', name: '弁柄' }, { hex: '#1E2229', name: '夜の瓦' }] }
+                ],
+                layouts: ['vertical', 'centered'], backgrounds: ['glow', 'washi', 'solid'], frames: ['corner', 'line'],
+                fonts: ['mincho'], shapeStyles: ['line', 'flat', 'soft'], compositions: ['orbit', 'stack', 'cluster'],
+                shapes: ['arch', 'circle', 'double-circle', 'ring', 'half', 'line'],
+                titles: ['京の夜', '月あかり', '路地の灯', '古都の宵']
+            },
+            {
+                id: 'satoyama', name: 'ふるさとの田んぼ', en: 'Hometown Fields', desc: '里山と田んぼ、夕日のあぜ道',
+                palettes: [
+                    { name: '田植えのころ', bg: 4, colors: [
+                        { hex: '#2F4F2F', name: '山の緑' }, { hex: '#6B8E23', name: '苗の緑' }, { hex: '#87CEEB', name: '水田の空' },
+                        { hex: '#C2B280', name: 'あぜ道' }, { hex: '#F6F5EE', name: '白い雲' }] },
+                    { name: '黄金の稲穂', bg: 4, colors: [
+                        { hex: '#3E3A2E', name: '土の色' }, { hex: '#D4A017', name: '黄金色' }, { hex: '#A0522D', name: '夕日' },
+                        { hex: '#7A8B5A', name: '里山' }, { hex: '#FAF3E0', name: '秋の空' }] }
+                ],
+                layouts: ['gallery', 'bold', 'vertical'], backgrounds: ['paper', 'washi'], frames: ['line', 'none'],
+                fonts: ['mincho', 'maru'], shapeStyles: ['flat', 'paper'], compositions: ['landscape'],
+                shapes: ['half', 'band', 'circle', 'triangle', 'line'],
+                titles: ['ふるさとの景色', '里山の夕暮れ', '田んぼのあぜ道', 'なつかしい道']
+            },
+            {
+                id: 'bauhaus', name: '幾何学のリズム', en: 'Geometric Rhythm', desc: 'まる・さんかく・しかくの、はっきりした形',
+                palettes: [
+                    { name: '三原色', bg: 4, colors: [
+                        { hex: '#111111', name: '墨' }, { hex: '#D7263D', name: '赤' }, { hex: '#F4C430', name: '黄' },
+                        { hex: '#1B4F9C', name: '青' }, { hex: '#F2EDE4', name: '生成り' }] },
+                    { name: 'くすみ三色', bg: 4, colors: [
+                        { hex: '#2B2B2B', name: '炭' }, { hex: '#C0583A', name: '煉瓦' }, { hex: '#E3B448', name: '芥子' },
+                        { hex: '#3C6E71', name: '青緑' }, { hex: '#EFE8DC', name: '紙' }] }
+                ],
+                layouts: ['bold', 'gallery', 'centered'], backgrounds: ['solid', 'paper'], frames: ['none', 'line'],
+                fonts: ['gothic'], shapeStyles: ['flat'], compositions: ['grid', 'diagonal'],
+                shapes: ['circle', 'half', 'quarter', 'rect', 'triangle', 'band'],
+                titles: ['かたちの音楽', 'リズム', 'GEOMETRY', 'まる・さんかく・しかく']
+            },
+            {
+                id: 'starry', name: '星空', en: 'Starry Night', desc: '満天の星と、夜明け前の空',
+                palettes: [
+                    { name: '満天の星', bg: 4, colors: [
+                        { hex: '#F7E7A1', name: '星の光' }, { hex: '#C9A45C', name: '月の金' }, { hex: '#5C6BC0', name: '夜の青' },
+                        { hex: '#9FA8DA', name: '天の川' }, { hex: '#0D1B2A', name: '夜空' }] },
+                    { name: '夜明け前', bg: 4, colors: [
+                        { hex: '#FFD6A5', name: '明けの明星' }, { hex: '#FF9E80', name: '朝焼け' }, { hex: '#6D597A', name: '紫の空' },
+                        { hex: '#B5838D', name: '薄紅' }, { hex: '#1D1A31', name: '夜明け前の空' }] }
+                ],
+                layouts: ['centered', 'vertical', 'gallery'], backgrounds: ['glow', 'solid'], frames: ['none', 'double'],
+                fonts: ['mincho', 'maru'], shapeStyles: ['soft', 'flat', 'line'], compositions: ['orbit', 'scatter'],
+                shapes: ['star', 'circle', 'ring', 'double-circle'],
+                titles: ['星に願いを', '満天の星', '夜のしじま', '月夜']
+            },
+            {
+                id: 'kimono', name: '着物の柄', en: 'Kimono Patterns', desc: '日本の伝統色と、着物のような柄',
+                palettes: [
+                    { name: '四季のうつろい', bg: 4, colors: [
+                        { hex: '#165E83', name: '藍色' }, { hex: '#B7282E', name: '茜色' }, { hex: '#F8B500', name: '山吹色' },
+                        { hex: '#68BE8D', name: '若竹色' }, { hex: '#FBFAF5', name: '生成り色' }] },
+                    { name: '着物と町家', bg: 4, colors: [
+                        { hex: '#595857', name: '墨' }, { hex: '#8F2E14', name: '弁柄色' }, { hex: '#928C36', name: '鶯色' },
+                        { hex: '#888E7E', name: '利休鼠' }, { hex: '#FFFFFC', name: '胡粉色' }] },
+                    { name: 'ふるさとの景色', bg: 4, colors: [
+                        { hex: '#192F60', name: '紺青' }, { hex: '#ED6D3D', name: '柿色' }, { hex: '#AACF53', name: '萌黄' },
+                        { hex: '#00A3AF', name: '浅葱色' }, { hex: '#F7FCFE', name: '卯の花色' }] }
+                ],
+                layouts: ['vertical', 'gallery', 'bold'], backgrounds: ['washi', 'paper', 'solid'], frames: ['corner', 'double'],
+                fonts: ['mincho'], shapeStyles: ['flat', 'paper'], compositions: ['diagonal', 'grid', 'stack'],
+                shapes: ['quarter', 'half', 'circle', 'band', 'rect', 'leaf'],
+                titles: ['和のかたち', '着物の記憶', '晴れの日', '市松の庭']
+            },
+            {
+                id: 'zen', name: '禅の庭', en: 'Zen Garden', desc: '白木と苔、石庭の静けさ',
+                palettes: [
+                    { name: '侘び寂びの木', bg: 4, colors: [
+                        { hex: '#1A1917', name: '焼き杉' }, { hex: '#423E37', name: 'くるみ材' }, { hex: '#8C8275', name: '洗い石' },
+                        { hex: '#D9D4CB', name: '麻' }, { hex: '#F7F5F0', name: '和紙' }] },
+                    { name: '苔むす庭', bg: 4, colors: [
+                        { hex: '#161A17', name: '苔' }, { hex: '#354038', name: '松の緑' }, { hex: '#8C968E', name: '若草のかすみ' },
+                        { hex: '#E3E5E2', name: '川石' }, { hex: '#FAFAFA', name: '朝もや' }] }
+                ],
+                layouts: ['vertical', 'centered'], backgrounds: ['washi', 'solid'], frames: ['none', 'line'],
+                fonts: ['mincho'], shapeStyles: ['soft', 'line'], compositions: ['orbit', 'cluster', 'stack'],
+                shapes: ['circle', 'ring', 'half', 'line', 'double-circle'],
+                titles: ['無心', '石と苔', '静寂', '一期一会']
+            },
+            {
+                id: 'terracotta', name: '南欧の陽だまり', en: 'Southern Sun', desc: '白い壁とテラコッタの、あたたかな色',
+                palettes: [
+                    { name: 'モダン・テラコッタ', bg: 4, colors: [
+                        { hex: '#1A1512', name: 'エスプレッソ' }, { hex: '#8C4A32', name: '焼き土の赤茶' }, { hex: '#C28E61', name: '黄土色' },
+                        { hex: '#D6C7B2', name: '砂岩' }, { hex: '#FAF7F2', name: 'あたたかな白' }] },
+                    { name: 'あたたかな土', bg: 4, colors: [
+                        { hex: '#221A16', name: 'こげ茶' }, { hex: '#A35C44', name: '素焼きの土' }, { hex: '#D9A066', name: '砂漠の夕日' },
+                        { hex: '#E8E1D5', name: '生成りのリネン' }, { hex: '#FFFFFF', name: 'まっさらな白' }] }
+                ],
+                layouts: ['gallery', 'bold'], backgrounds: ['paper', 'solid'], frames: ['line', 'none'],
+                fonts: ['gothic', 'maru'], shapeStyles: ['flat', 'paper'], compositions: ['stack', 'landscape', 'grid'],
+                shapes: ['arch', 'half', 'circle', 'quarter', 'rect'],
+                titles: ['陽だまりの壁', '南の窓辺', 'TERRACOTTA', '白壁の家']
+            },
+            {
+                id: 'brass', name: '真鍮のラウンジ', en: 'Midnight Lounge', desc: '夜のホテルのバー、真鍮のきらめき',
+                palettes: [
+                    { name: '真鍮と黒', bg: 0, colors: [
+                        { hex: '#0D0D0D', name: '夜の黒曜石' }, { hex: '#262626', name: '黒鉛' }, { hex: '#C49A45', name: 'いぶし真鍮' },
+                        { hex: '#D9D2C3', name: 'シャンパンの絹' }, { hex: '#F7F5F0', name: '象牙の紙' }] },
+                    { name: '深いビロード', bg: 1, colors: [
+                        { hex: '#0A0D0F', name: '闇の黒' }, { hex: '#17212B', name: '墨の紺' }, { hex: '#B89753', name: 'くすんだ金' },
+                        { hex: '#8A99A8', name: '鋼の灰' }, { hex: '#F5F6F8', name: '真珠の白' }] }
+                ],
+                layouts: ['centered', 'bold'], backgrounds: ['solid', 'glow'], frames: ['double', 'corner'],
+                fonts: ['mincho'], shapeStyles: ['line', 'flat'], compositions: ['orbit', 'stack'],
+                shapes: ['arch', 'circle', 'ring', 'line', 'double-circle', 'rect'],
+                titles: ['MIDNIGHT LOUNGE', '真鍮の夜', 'GRAND HOTEL', '静かな乾杯']
+            }
         ];
-
-        const PALETTE_DATA = {
-            calm: [
-                { name: '建築のコンクリート', en: 'Architectural Concrete', colors: [
-                    { hex: '#1C1C1E', name: '炭色' },
-                    { hex: '#3A3A3C', name: '打ちっぱなしの灰' },
-                    { hex: '#636366', name: '鉛色' },
-                    { hex: '#AEAEB2', name: '霞の銀' },
-                    { hex: '#F2F2F7', name: 'しっくいの白' }
-                ] },
-                { name: '北欧のフィヨルド', en: 'Nordic Fjord', colors: [
-                    { hex: '#11161A', name: '深い海の黒' },
-                    { hex: '#232D36', name: '岩肌の青灰' },
-                    { hex: '#485A6A', name: '鋼の青' },
-                    { hex: '#95A5B3', name: '氷河の霧' },
-                    { hex: '#F4F6F8', name: '新雪の白' }
-                ] }
-            ],
-            energetic: [
-                { name: 'モダン・テラコッタ', en: 'Modern Terracotta', colors: [
-                    { hex: '#1A1512', name: 'エスプレッソ' },
-                    { hex: '#8C4A32', name: '焼き土の赤茶' },
-                    { hex: '#C28E61', name: '黄土色' },
-                    { hex: '#D6C7B2', name: '砂岩' },
-                    { hex: '#FAF7F2', name: 'あたたかな白' }
-                ] },
-                { name: 'あたたかな土', en: 'Warm Clay', colors: [
-                    { hex: '#221A16', name: 'こげ茶' },
-                    { hex: '#A35C44', name: '素焼きの土' },
-                    { hex: '#D9A066', name: '砂漠の夕日' },
-                    { hex: '#E8E1D5', name: '生成りのリネン' },
-                    { hex: '#FFFFFF', name: 'まっさらな白' }
-                ] }
-            ],
-            luxury: [
-                { name: '真鍮と黒', en: 'Brass & Noir', colors: [
-                    { hex: '#0D0D0D', name: '夜の黒曜石' },
-                    { hex: '#262626', name: '黒鉛' },
-                    { hex: '#C49A45', name: 'いぶし真鍮' },
-                    { hex: '#D9D2C3', name: 'シャンパンの絹' },
-                    { hex: '#F7F5F0', name: '象牙の紙' }
-                ] },
-                { name: '深いビロード', en: 'Dark Velvet', colors: [
-                    { hex: '#0A0D0F', name: '闇の黒' },
-                    { hex: '#17212B', name: '墨の紺' },
-                    { hex: '#B89753', name: 'くすんだ金' },
-                    { hex: '#8A99A8', name: '鋼の灰' },
-                    { hex: '#F5F6F8', name: '真珠の白' }
-                ] }
-            ],
-            natural: [
-                { name: '侘び寂びの木', en: 'Wabi-Sabi Wood', colors: [
-                    { hex: '#1A1917', name: '焼き杉' },
-                    { hex: '#423E37', name: 'くるみ材' },
-                    { hex: '#8C8275', name: '洗い石' },
-                    { hex: '#D9D4CB', name: '麻' },
-                    { hex: '#F7F5F0', name: '和紙' }
-                ] },
-                { name: '禅の庭', en: 'Zen Garden', colors: [
-                    { hex: '#161A17', name: '苔' },
-                    { hex: '#354038', name: '松の緑' },
-                    { hex: '#8C968E', name: '若草のかすみ' },
-                    { hex: '#E3E5E2', name: '川石' },
-                    { hex: '#FAFAFA', name: '朝もや' }
-                ] }
-            ],
-            japanese: [
-                { name: '四季のうつろい', en: 'Four Seasons', colors: [
-                    { hex: '#165E83', name: '藍色' },
-                    { hex: '#B7282E', name: '茜色' },
-                    { hex: '#F8B500', name: '山吹色' },
-                    { hex: '#68BE8D', name: '若竹色' },
-                    { hex: '#FBFAF5', name: '生成り色' }
-                ] },
-                { name: '着物と町家', en: 'Kimono & Machiya', colors: [
-                    { hex: '#595857', name: '墨' },
-                    { hex: '#8F2E14', name: '弁柄色' },
-                    { hex: '#928C36', name: '鶯色' },
-                    { hex: '#888E7E', name: '利休鼠' },
-                    { hex: '#FFFFFC', name: '胡粉色' }
-                ] },
-                { name: 'ふるさとの景色', en: 'Hometown Scenery', colors: [
-                    { hex: '#192F60', name: '紺青' },
-                    { hex: '#ED6D3D', name: '柿色' },
-                    { hex: '#AACF53', name: '萌黄' },
-                    { hex: '#00A3AF', name: '浅葱色' },
-                    { hex: '#F7FCFE', name: '卯の花色' }
-                ] }
-            ]
-        };
+        const DEFAULT_THEME_ID = 'lobby';
+        const themeById = id => THEMES.find(t => t.id === id) || THEMES[0];
+        // 以前の形式（雰囲気 mood）のデータを、近いテーマに読みかえる
+        const OLD_MOOD_TO_THEME = { calm: 'lobby', energetic: 'terracotta', luxury: 'brass', natural: 'zen', japanese: 'kimono' };
 
         const MAX_COLORS = 10;
         const MIN_COLORS = 2;
@@ -533,9 +678,9 @@
 
         // ===== 状態 =====
         const state = {
-            mood: 'calm',
-            presetIndex: 0,
-            palette: paletteFromPreset(PALETTE_DATA.calm[0]),
+            themeId: DEFAULT_THEME_ID,
+            paletteIndex: 0,
+            palette: paletteFromPreset(THEMES[0].palettes[0]),
             bgId: null,
             author: '',
             scale: 1.0,
@@ -574,19 +719,32 @@
             return c ? c.hex : normalizeHex(shape.hex);
         }
         // ポスターの文字色：背景との差がいちばん大きいパレットの色。差が足りなければ黒か白
-        function getTextColors() {
-            const bg = getBgColor().hex;
+        function textColorsFor(palette, bg) {
             let main = null, best = 0;
-            state.palette.forEach(c => {
+            palette.forEach(c => {
                 const cr = contrast(c.hex, bg);
                 if (cr > best) { best = cr; main = c.hex; }
             });
             if (!main || best < 4.5) main = luminance(bg) > 0.35 ? '#1C1C1C' : '#F5F3EE';
             return { main, sub: mixHex(main, bg, 0.35), faint: mixHex(main, bg, 0.75) };
         }
-        // たたき台の配色から色や思い出を変えたかどうか（置きかえ前の確認に使う）
+        function getTextColors() {
+            return textColorsFor(state.palette, getBgColor().hex);
+        }
+        // 「色の面」の色：背景と文字の色以外で、いちばん色みの強い色
+        function panelColorFor(palette, bg) {
+            const text = textColorsFor(palette, bg.hex);
+            const chroma = hex => { const { r, g, b } = hexToRgb(hex); return Math.max(r, g, b) - Math.min(r, g, b); };
+            const cands = palette.filter(c => c.id !== bg.id && c.hex !== text.main);
+            if (!cands.length) return mixHex(bg.hex, text.main, 0.15);
+            return cands.reduce((best, c) => (chroma(c.hex) > chroma(best.hex) ? c : best)).hex;
+        }
+        function getPanelColor() {
+            return panelColorFor(state.palette, getBgColor());
+        }
+        // テーマの配色から色や思い出を変えたかどうか（置きかえ前の確認に使う）
         function paletteIsEdited() {
-            const p = (PALETTE_DATA[state.mood] || [])[state.presetIndex];
+            const p = themeById(state.themeId).palettes[state.paletteIndex];
             if (!p || p.colors.length !== state.palette.length) return true;
             return state.palette.some((c, i) => c.hex !== normalizeHex(p.colors[i].hex) || c.name !== p.colors[i].name || c.memory.trim());
         }
@@ -725,8 +883,8 @@
         const history = [];
         function serializeWork() {
             return {
-                mood: state.mood,
-                presetIndex: state.presetIndex,
+                themeId: state.themeId,
+                paletteIndex: state.paletteIndex,
                 palette: state.palette.map(c => ({ ...c })),
                 bgId: state.bgId,
                 author: state.author,
@@ -740,8 +898,8 @@
             };
         }
         function applyWork(w) {
-            state.mood = w.mood;
-            state.presetIndex = w.presetIndex;
+            state.themeId = w.themeId || DEFAULT_THEME_ID;
+            state.paletteIndex = w.paletteIndex || 0;
             state.palette = w.palette.map(c => ({ ...c }));
             state.bgId = w.bgId;
             state.author = w.author || '';
@@ -815,7 +973,7 @@
             // id の重複を避ける
             const seen = new Set();
             palette.forEach(c => { if (seen.has(c.id)) c.id = uid('c'); seen.add(c.id); });
-            if (palette.length < MIN_COLORS) palette = paletteFromPreset(PALETTE_DATA.calm[0]);
+            if (palette.length < MIN_COLORS) palette = paletteFromPreset(THEMES[0].palettes[0]);
             const typeIds = SHAPE_TYPES.map(t => t.id);
             const shapes = Array.isArray(raw.shapes) ? raw.shapes.slice(0, 60).filter(s => s && typeIds.includes(s.type)).map(s => ({
                 id: typeof s.id === 'string' && s.id ? s.id : uid('s'),
@@ -827,10 +985,12 @@
                 colorId: typeof s.colorId === 'string' ? s.colorId : null,
                 hex: normalizeHex(s.hex)
             })) : [];
-            const mood = PALETTE_DATA[raw.mood] ? raw.mood : 'calm';
+            // 以前の形式（雰囲気 mood とたたき台の番号）も、近いテーマに読みかえる
+            const themeId = THEMES.some(t => t.id === raw.themeId) ? raw.themeId : (OLD_MOOD_TO_THEME[raw.mood] || DEFAULT_THEME_ID);
+            const rawIndex = raw.paletteIndex !== undefined ? raw.paletteIndex : raw.presetIndex;
             return {
-                mood,
-                presetIndex: clampNum(Math.floor(raw.presetIndex), 0, PALETTE_DATA[mood].length - 1, 0),
+                themeId,
+                paletteIndex: clampNum(Math.floor(rawIndex), 0, themeById(themeId).palettes.length - 1, 0),
                 palette,
                 bgId: palette.some(c => c.id === raw.bgId) ? raw.bgId : null,
                 // 以前の形式（二人分の名前）のデータも読めるようにする
@@ -901,20 +1061,14 @@
             resetHistory();
         }
 
+        // 新しい作品：いまのテーマから案をひとつつくる（お名前はそのまま引きつぐ）
         function defaultWorkData() {
-            const palette = paletteFromPreset(PALETTE_DATA.calm[0]);
-            const prevPalette = state.palette;
-            state.palette = palette;
-            state.bgId = null;
-            const shapes = makeDefaultShapes();
-            state.palette = prevPalette;
-            return {
-                mood: 'calm', presetIndex: 0, palette, bgId: null,
-                author: '', scale: 1, showGuide: false,
-                title: 'わたしのギャラリー', message: '', showSwatchLabels: true, style: { ...DEFAULT_STYLE }, shapes
-            };
+            const theme = themeById(state.themeId);
+            const work = generateWork(theme, seededRandom(Math.floor(Math.random() * 2147483647)));
+            work.title = theme.titles[0];
+            work.message = '';
+            return work;
         }
-
         function createWork(data, { open = true } = {}) {
             const id = uid('w');
             const now = new Date().toISOString();
@@ -1148,7 +1302,7 @@
 
         function renderAll() {
             renderAuthor();
-            renderMoodTabs();
+            renderThemeList();
             renderPresetList();
             renderStyleOptions();
             renderPaletteList();
@@ -1169,38 +1323,340 @@
             await waitForFonts();
             drawPoster();
             commit(); // 最初の状態を履歴に入れ、保存する
+            makeProposals(); // いまのテーマの案を3つ用意しておく
             // 後から読み込まれた字形（日本語の追加サブセット等）があれば描き直す
             if (document.fonts) document.fonts.addEventListener('loadingdone', requestDraw);
             // 画面の幅が変わるとつまみの大きさも変わるので描き直す
             window.addEventListener('resize', requestDraw);
         }
 
-        // ===== 01 お名前 =====
+        // ===== 03 ことば：お名前 =====
         function renderAuthor() {
             $('author-name').value = state.author;
         }
 
-        // ===== 02 たたき台 =====
-        function renderMoodTabs() {
-            const wrap = $('mood-selector');
-            wrap.innerHTML = MOODS.map(m => `
-                <button type="button" role="tab" aria-selected="${state.mood === m.id}" data-mood="${m.id}" class="mood-btn btn btn-sm ${state.mood === m.id ? 'btn-on' : ''}">${m.label}</button>
-            `).join('');
-            wrap.querySelectorAll('.mood-btn').forEach(btn => btn.addEventListener('click', () => {
-                state.mood = btn.dataset.mood;
-                renderMoodTabs();
-                renderPresetList();
+        // ===== 案の自動生成 =====
+        // 文字の置き方ごとに、図形をならべてよい範囲（中心からの半分の幅・高さ）
+        const ART_BOX = {
+            gallery:  { hw: 280, hh: 240 },
+            vertical: { hw: 215, hh: 260 },
+            centered: { hw: 270, hh: 230 },
+            bold:     { hw: 320, hh: 280 }
+        };
+        const pickFrom = (rnd, arr) => arr[Math.floor(rnd() * arr.length)];
+        const between = (rnd, a, b) => a + (b - a) * rnd();
+        // テーマの図形のうち、構図に向いたものだけを使う（なければテーマの図形すべて）
+        const prefer = (types, wanted) => { const t = types.filter(x => wanted.includes(x)); return t.length ? t : types; };
+
+        // 構図：図形の種類・位置・大きさ（px）・向きを決める
+        const COMPOSERS = {
+            // 重ねる：大小の図形を中央に重ねる
+            cluster(rnd, box, types) {
+                const m = Math.min(box.hw, box.hh);
+                const n = 3 + Math.floor(rnd() * 3);
+                const scales = [0.78, 0.62, 0.5, 0.42, 0.34];
+                return Array.from({ length: n }, (_, i) => ({
+                    type: pickFrom(rnd, types),
+                    x: between(rnd, -0.38, 0.38) * box.hw,
+                    y: between(rnd, -0.3, 0.3) * box.hh,
+                    R: m * scales[i] * between(rnd, 0.85, 1.1),
+                    rot: pickFrom(rnd, [0, 0, 0, 15, -15, 45, 90])
+                }));
+            },
+            // 積む：下から上へ、トーテムのように積む
+            stack(rnd, box, types) {
+                const t = prefer(types, ['arch', 'circle', 'half', 'rect', 'triangle', 'quarter', 'double-circle']);
+                const n = 3 + Math.floor(rnd() * 2);
+                const unit = (box.hh * 2 * 0.9) / n;
+                const out = [];
+                if (types.includes('line')) out.push({ type: 'line', x: 0, y: box.hh * 0.92, R: box.hw * 0.8, rot: 0 });
+                for (let i = 0; i < n; i++) {
+                    const type = pickFrom(rnd, t);
+                    out.push({
+                        type,
+                        x: between(rnd, -0.12, 0.12) * box.hw,
+                        y: box.hh * 0.9 - unit * (i + 0.5),
+                        R: unit * 0.55 * between(rnd, 0.9, 1.2),
+                        rot: type === 'quarter' ? pickFrom(rnd, [0, 90, 180, 270]) : 0
+                    });
+                }
+                return out;
+            },
+            // めぐる：大きな輪のまわりを小さな丸や星がめぐる
+            orbit(rnd, box, types) {
+                const m = Math.min(box.hw, box.hh);
+                const R0 = m * 0.7;
+                const main = pickFrom(rnd, prefer(types, ['ring', 'double-circle', 'circle']));
+                const out = [{ type: main, x: 0, y: 0, R: R0, rot: 0 }];
+                if (types.includes('line') && rnd() < 0.6) out.unshift({ type: 'line', x: 0, y: 0, R: m * 0.95, rot: pickFrom(rnd, [0, 90, -30]) });
+                if (main !== 'double-circle') out.push({ type: 'circle', x: between(rnd, -0.1, 0.1) * R0, y: between(rnd, -0.1, 0.1) * R0, R: R0 * 0.36, rot: 0 });
+                const sat = prefer(types, ['circle', 'star']);
+                const k = 3 + Math.floor(rnd() * 4);
+                for (let i = 0; i < k; i++) {
+                    const a = rnd() * Math.PI * 2, d = R0 * between(rnd, 1.12, 1.32);
+                    out.push({
+                        type: pickFrom(rnd, sat),
+                        x: Math.max(-box.hw, Math.min(box.hw, Math.cos(a) * d)),
+                        y: Math.max(-box.hh, Math.min(box.hh, Math.sin(a) * d)),
+                        R: between(rnd, 12, 30), rot: rnd() * 72
+                    });
+                }
+                return out;
+            },
+            // 散らす：ひとつの大きな形と、たくさんの小さな形
+            scatter(rnd, box, types) {
+                const m = Math.min(box.hw, box.hh);
+                const small = types.filter(t => !['band', 'line', 'arch'].includes(t));
+                const out = [{
+                    type: pickFrom(rnd, types),
+                    x: between(rnd, -0.3, 0.3) * box.hw, y: between(rnd, -0.3, 0.3) * box.hh,
+                    R: m * between(rnd, 0.4, 0.55), rot: pickFrom(rnd, [0, 0, 30, -30])
+                }];
+                const k = 14 + Math.floor(rnd() * 9);
+                for (let i = 0; i < k; i++) {
+                    out.push({
+                        type: pickFrom(rnd, small.length ? small : types),
+                        x: between(rnd, -1, 1) * box.hw, y: between(rnd, -1, 1) * box.hh,
+                        R: between(rnd, 12, 34) * (m / 250), rot: rnd() * 360
+                    });
+                }
+                return out;
+            },
+            // ならべる：ます目に形をならべる
+            grid(rnd, box, types) {
+                const t = prefer(types, ['rect', 'circle', 'half', 'quarter', 'triangle']);
+                const n = pickFrom(rnd, [3, 3, 4]);
+                const side = Math.min(box.hw, box.hh) * 2 * 0.92;
+                const cell = side / n;
+                const out = [];
+                const place = (type, cx, cy, rot) => {
+                    let R = cell * 0.46, dy0 = 0;
+                    if (type === 'rect' || type === 'quarter') R = (cell * 0.47) / 0.7;
+                    else if (type === 'half') dy0 = 0.2 * R;
+                    else if (type === 'triangle') { R = cell * 0.5; dy0 = 0.25 * R; }
+                    // 形の見た目の中心をます目の中心にそろえる
+                    const a = rot * Math.PI / 180;
+                    out.push({ type, x: cx - dy0 * Math.sin(a), y: cy + dy0 * Math.cos(a), R, rot });
+                };
+                for (let r = 0; r < n; r++) {
+                    for (let c = 0; c < n; c++) {
+                        if (rnd() < 0.12) continue;
+                        const cx = -side / 2 + cell * (c + 0.5), cy = -side / 2 + cell * (r + 0.5);
+                        if (types.includes('rect') && rnd() < 0.35) {
+                            place('rect', cx, cy, 0);
+                            out.push({ type: pickFrom(rnd, prefer(types, ['circle', 'quarter', 'half'])), x: cx, y: cy, R: cell * 0.32, rot: pickFrom(rnd, [0, 90, 180, 270]) });
+                        } else {
+                            const type = pickFrom(rnd, t);
+                            place(type, cx, cy, type === 'triangle' ? pickFrom(rnd, [0, 180]) : pickFrom(rnd, [0, 90, 180, 270]));
+                        }
+                    }
+                }
+                return out;
+            },
+            // 風景：太陽と、海（帯）または山なみ（半円）
+            landscape(rnd, box, types) {
+                const m = Math.min(box.hw, box.hh);
+                const out = [{
+                    type: pickFrom(rnd, prefer(types, ['circle', 'double-circle'])),
+                    x: between(rnd, -0.45, 0.45) * box.hw, y: -box.hh * between(rnd, 0.35, 0.55),
+                    R: m * between(rnd, 0.2, 0.3), rot: 0
+                }];
+                const sea = types.includes('band') && (!types.includes('half') || rnd() < 0.5);
+                if (sea) {
+                    if (types.includes('line')) out.push({ type: 'line', x: 0, y: box.hh * 0.02, R: box.hw * 0.95, rot: 0 });
+                    const k = 3 + Math.floor(rnd() * 2);
+                    for (let i = 0; i < k; i++) {
+                        out.push({ type: 'band', x: between(rnd, -0.08, 0.08) * box.hw, y: box.hh * (0.18 + i * 0.22), R: (box.hw * 2.2) / 2.4, rot: 0 });
+                    }
+                } else {
+                    if (types.includes('triangle') && rnd() < 0.6) {
+                        out.push({ type: 'triangle', x: between(rnd, -0.5, 0.5) * box.hw, y: -box.hh * 0.05, R: box.hw * 0.45, rot: 0 });
+                    }
+                    const k = 2 + Math.floor(rnd() * 2);
+                    const hills = Array.from({ length: k }, () => {
+                        const R = box.hw * between(rnd, 0.7, 1.05);
+                        const top = between(rnd, -0.05, 0.4) * box.hh;
+                        return { type: 'half', x: between(rnd, -0.5, 0.5) * box.hw, y: top + 0.7 * R, R, rot: 0, top };
+                    }).sort((a, b) => a.top - b.top); // 遠い（高い）山から描く
+                    hills.forEach(h => { delete h.top; out.push(h); });
+                }
+                return out;
+            },
+            // ななめ：ななめの帯と、アクセントの形
+            diagonal(rnd, box, types) {
+                const m = Math.min(box.hw, box.hh);
+                const ang = pickFrom(rnd, [-45, -30, 30, 45, -60]);
+                const R = (Math.hypot(box.hw, box.hh) / 1.2) * 0.75;
+                const k = 3 + Math.floor(rnd() * 2);
+                const s = 0.5 * R;
+                const nx = Math.cos((ang + 90) * Math.PI / 180), ny = Math.sin((ang + 90) * Math.PI / 180);
+                const out = [];
+                for (let i = 0; i < k; i++) {
+                    const t = (i - (k - 1) / 2) * s;
+                    out.push({ type: types.includes('band') ? (i % 2 && types.includes('line') ? 'line' : 'band') : 'rect', x: t * nx, y: t * ny, R: types.includes('band') ? R : R * 0.4, rot: ang });
+                }
+                const acc = prefer(types, ['circle', 'quarter', 'half', 'leaf']);
+                const a = 1 + Math.floor(rnd() * 2);
+                for (let i = 0; i < a; i++) {
+                    out.push({ type: pickFrom(rnd, acc), x: between(rnd, -0.6, 0.6) * box.hw, y: between(rnd, -0.6, 0.6) * box.hh, R: m * between(rnd, 0.18, 0.3), rot: pickFrom(rnd, [0, 90, 180, 270]) });
+                }
+                return out;
+            }
+        };
+
+        function paletteFromTheme(theme, index) {
+            const p = theme.palettes[index] || theme.palettes[0];
+            const palette = paletteFromPreset(p);
+            const bgId = (palette[p.bg] || palette[palette.length - 1]).id;
+            return { palette, bgId };
+        }
+
+        // 利用者が自分で入れたタイトルは残す（空・はじめのまま・テーマの例のときだけ入れかえる）
+        function isAutoTitle(title) {
+            const t = String(title || '').trim();
+            return !t || t === 'わたしのギャラリー' || THEMES.some(th => th.titles.includes(t));
+        }
+
+        // テーマから案をひとつつくる
+        function generateWork(theme, rnd, avoid = []) {
+            let choice = null;
+            // ほかの案と配置・構図・配色がなるべく重ならないよう、数回ためして選ぶ
+            for (let attempt = 0; attempt < 8; attempt++) {
+                const c = {
+                    paletteIndex: Math.floor(rnd() * theme.palettes.length),
+                    layout: pickFrom(rnd, theme.layouts),
+                    composition: pickFrom(rnd, theme.compositions)
+                };
+                const sig = `${c.layout}/${c.composition}/${c.paletteIndex}`;
+                choice = c;
+                if (!avoid.includes(sig)) { avoid.push(sig); break; }
+            }
+            const { palette, bgId } = paletteFromTheme(theme, choice.paletteIndex);
+            const style = normalizeStyle({
+                layout: choice.layout,
+                background: pickFrom(rnd, theme.backgrounds),
+                frame: pickFrom(rnd, theme.frames),
+                font: pickFrom(rnd, theme.fonts),
+                shapeStyle: pickFrom(rnd, theme.shapeStyles)
+            });
+            const raw = COMPOSERS[choice.composition](rnd, ART_BOX[style.layout], theme.shapes);
+
+            // 色：背景の色は使わない。色の面のときは面の色も使わない。となりあう図形は別の色に
+            const bg = palette.find(c => c.id === bgId);
+            let cands = palette.filter(c => c.id !== bgId);
+            if (style.layout === 'bold') {
+                const panel = panelColorFor(palette, bg);
+                const rest = cands.filter(c => c.hex !== panel);
+                if (rest.length) cands = rest;
+            }
+            let prev = null;
+            const shapes = raw.map(r => {
+                let c = pickFrom(rnd, cands);
+                if (cands.length > 1) while (c === prev) c = pickFrom(rnd, cands);
+                prev = c;
+                return {
+                    id: uid('s'), type: r.type,
+                    x: Math.round(r.x), y: Math.round(r.y),
+                    size: Math.min(2.6, Math.max(0.03, r.R / BASE_SIZE)),
+                    rotation: Math.round(((r.rot + 180) % 360 + 360) % 360 - 180),
+                    colorId: c.id, hex: c.hex
+                };
+            });
+
+            return {
+                themeId: theme.id,
+                paletteIndex: choice.paletteIndex,
+                palette, bgId,
+                author: state.author,
+                scale: 1,
+                showGuide: state.showGuide,
+                title: isAutoTitle(state.title) ? pickFrom(rnd, theme.titles) : state.title,
+                message: state.message,
+                showSwatchLabels: state.showSwatchLabels,
+                style,
+                shapes
+            };
+        }
+
+        // 一時的に別の作品の内容にして処理し、元にもどす（案の見本を描くときに使う）
+        function withWork(work, fn) {
+            const saved = serializeWork();
+            const sel = state.selectedId;
+            const panel = boldPanel;
+            applyWork(work);
+            try { return fn(); } finally { applyWork(saved); state.selectedId = sel; boldPanel = panel; }
+        }
+
+        // ===== 01 テーマ／02 案 =====
+        let proposals = [];
+        function renderThemeList() {
+            const list = $('theme-list');
+            list.innerHTML = THEMES.map(t => {
+                const p = t.palettes[0];
+                const on = t.id === state.themeId;
+                return `
+                <button type="button" data-theme="${t.id}" class="theme-btn text-left p-3 rounded-xl border-2 ${on ? 'border-amber-200 bg-stone-800' : 'border-stone-700 bg-stone-950/50 hover:border-stone-400'} transition-colors flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200" aria-pressed="${on}">
+                    <span class="flex h-7 rounded-md overflow-hidden border border-white/15">
+                        ${p.colors.map(c => `<span class="flex-1" style="background:${c.hex}"></span>`).join('')}
+                    </span>
+                    <span class="font-mincho font-semibold text-lg text-stone-50 leading-snug">${on ? '<i class="fa-solid fa-check text-amber-200 mr-1"></i>' : ''}${escapeHtml(t.name)}</span>
+                    <span class="text-sm text-stone-300 leading-snug">${escapeHtml(t.desc)}</span>
+                </button>`;
+            }).join('');
+            list.querySelectorAll('.theme-btn').forEach(btn => btn.addEventListener('click', () => {
+                state.themeId = btn.dataset.theme;
+                renderThemeList();
+                makeProposals();
+                const panel = $('proposal-panel');
+                if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }));
         }
 
+        function makeProposals() {
+            const theme = themeById(state.themeId);
+            const rnd = seededRandom(Math.floor(Math.random() * 2147483647));
+            const avoid = [];
+            proposals = [0, 1, 2].map(() => {
+                const work = generateWork(theme, rnd, avoid);
+                const thumb = withWork(work, () => renderPosterCanvas(0.34).toDataURL('image/jpeg', 0.85));
+                return { work, thumb };
+            });
+            requestDraw(); // 見本を描いたあと、画面のポスターを描き直す
+            renderProposals();
+        }
+
+        function renderProposals() {
+            const theme = themeById(state.themeId);
+            $('proposal-help').textContent = `「${theme.name}」の案です。気に入ったものを押すと、右のポスターがその案になります。`;
+            $('proposal-list').innerHTML = proposals.map((p, i) => `
+                <button type="button" data-i="${i}" class="proposal-btn group flex flex-col items-center gap-1 rounded-xl border-2 border-stone-700 hover:border-amber-200 bg-stone-950/50 p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200" aria-label="案${i + 1}をえらぶ">
+                    <img src="${p.thumb}" alt="" class="w-full h-auto rounded">
+                    <span class="text-base font-bold text-stone-100 py-1">案${i + 1}</span>
+                </button>`).join('');
+            $('proposal-list').querySelectorAll('.proposal-btn').forEach(btn => btn.addEventListener('click', () => {
+                const p = proposals[parseInt(btn.dataset.i, 10)];
+                // 選ぶたびに新しいIDの図形・色にして、同じ案を何度選んでも同じ結果になるようにする
+                const work = JSON.parse(JSON.stringify(p.work));
+                work.author = state.author;
+                work.message = state.message;
+                if (!isAutoTitle(state.title)) work.title = state.title;
+                applyWork(work);
+                state.selectedId = null;
+                renderAll();
+                commit();
+                showToast('この案にしました。気になるところは下で直せます（「ひとつ戻す」で元にもどせます）');
+                // 画面がせまくポスターが上にあるときは、ポスターの位置まで戻る
+                if (window.matchMedia('(max-width: 1023px)').matches) canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }));
+        }
+
+        // ===== 05 色：このテーマのほかの配色 =====
         function renderPresetList() {
+            const theme = themeById(state.themeId);
             const list = $('preset-list');
-            list.innerHTML = PALETTE_DATA[state.mood].map((p, i) => `
-                <button type="button" data-preset="${i}" class="preset-btn w-full text-left p-3 rounded-xl border-2 border-stone-700 bg-stone-950/50 hover:border-stone-400 transition-colors flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">
-                    <span class="flex flex-wrap items-baseline justify-between gap-2">
-                        <span class="font-bold text-base text-stone-50">${escapeHtml(p.name)}</span>
-                        <span class="font-cinzel text-xs tracking-widest text-stone-400">${escapeHtml(p.en)}</span>
-                    </span>
+            list.innerHTML = theme.palettes.map((p, i) => `
+                <button type="button" data-preset="${i}" class="preset-btn w-full text-left p-3 rounded-xl border-2 ${i === state.paletteIndex ? 'border-amber-200/70' : 'border-stone-700'} bg-stone-950/50 hover:border-stone-400 transition-colors flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">
+                    <span class="font-bold text-base text-stone-50">${escapeHtml(p.name)}</span>
                     <span class="flex h-9 rounded-lg overflow-hidden border border-white/15">
                         ${p.colors.map(c => `<span class="flex-1" style="background:${c.hex}" title="${escapeHtml(c.name)}"></span>`).join('')}
                     </span>
@@ -1210,21 +1666,27 @@
             list.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.preset, 10);
                 if (paletteIsEdited() && !confirm('いまの色（書いた名前や思い出も）を、この配色に置きかえます。よろしいですか？')) return;
-                state.presetIndex = idx;
-                state.palette = paletteFromPreset(PALETTE_DATA[state.mood][idx]);
-                state.bgId = null;
-                // 図形の色は新しいパレットの色に順番に置きかえる
-                const cands = shapeColorCandidates();
+                const { palette, bgId } = paletteFromTheme(theme, idx);
+                state.paletteIndex = idx;
+                state.palette = palette;
+                state.bgId = bgId;
+                // 図形の色は新しいパレットの色に順番に置きかえる（色の面のときは面の色をさける）
+                let cands = shapeColorCandidates();
+                if (state.style.layout === 'bold') {
+                    const panel = getPanelColor();
+                    if (cands.some(c => c.hex !== panel)) cands = cands.filter(c => c.hex !== panel);
+                }
                 state.shapes.forEach((s, i) => {
                     const c = cands[(i + 1) % cands.length];
                     s.colorId = c.id;
                     s.hex = c.hex;
                 });
+                renderPresetList();
                 renderPaletteList();
                 renderShapeList();
                 requestDraw();
                 commit();
-                showToast(`「${PALETTE_DATA[state.mood][idx].name}」をたたき台にしました`);
+                showToast(`配色を「${theme.palettes[idx].name}」にしました`);
             }));
         }
 
@@ -1827,6 +2289,7 @@
             title.addEventListener('change', commit);
 
             $('btn-undo').addEventListener('click', undo);
+            $('btn-more-proposals').addEventListener('click', makeProposals);
             $('btn-download').addEventListener('click', downloadPng);
             bindCanvasPointer();
         }
@@ -1983,16 +2446,6 @@
                 ctx.strokeRect(48, 48, W - 96, H - 96);
             }
             ctx.restore();
-        }
-
-        // 「色の面」の色：背景と文字の色以外で、いちばん色みの強い色
-        function getPanelColor() {
-            const bg = getBgColor();
-            const text = getTextColors();
-            const chroma = hex => { const { r, g, b } = hexToRgb(hex); return Math.max(r, g, b) - Math.min(r, g, b); };
-            const cands = state.palette.filter(c => c.id !== bg.id && c.hex !== text.main);
-            if (!cands.length) return mixHex(bg.hex, text.main, 0.15);
-            return cands.reduce((best, c) => (chroma(c.hex) > chroma(best.hex) ? c : best)).hex;
         }
 
         // ----- 図形 -----
@@ -2286,11 +2739,12 @@
             const left = 72, right = W - 72, maxWidth = right - left;
             const ax = centered ? W / 2 : left;
             const align = centered ? 'center' : 'left';
-            const preset = PALETTE_DATA[state.mood][state.presetIndex] || PALETTE_DATA.calm[0];
+            const theme = themeById(state.themeId);
+            const themeNo = String(THEMES.indexOf(theme) + 1).padStart(2, '0');
             const n = state.palette.length;
 
             // 上部の小さな英字
-            const topLabel = `COLLECTION NO. 0${state.presetIndex + 1} — HOTEL GALLERY EDITION`;
+            const topLabel = `${theme.en.toUpperCase()} — HOTEL GALLERY EDITION`;
             ops.push(() => {
                 let color = text.sub;
                 if (st.layout === 'bold') {
@@ -2397,7 +2851,7 @@
             ops.push(() => {
                 ctx.fillStyle = text.sub;
                 ctx.font = '400 12px "Montserrat", sans-serif';
-                fillSpacedText(`BASED ON “${preset.en.toUpperCase()}”  /  ${n} COLORS`, ax, subY, 1.5, align);
+                fillSpacedText(`COLLECTION NO. ${themeNo}  /  ${n} COLORS`, ax, subY, 1.5, align);
             });
             cursorY -= 26;
 
