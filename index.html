@@ -165,7 +165,7 @@
                     <input type="checkbox" id="show-swatches" checked>
                     ポスターに色見本をのせる
                 </label>
-                <p class="help -mt-3">色の名前や思い出は、「色を変える」で書いたものだけが色見本の下にのります。</p>
+                <p class="help -mt-3">色見本の下には色のコード（#165E83 のような16進数）が入ります。色の名前や思い出は、「色を変える」で書いたものだけがのります。</p>
             </div>
 
             <p class="font-mincho text-lg text-stone-200 px-1 pt-2">もっと自分らしくしたいときは、下を開いて直せます。</p>
@@ -3035,13 +3035,14 @@
             });
 
             // 色見本：横に並べた帯（まんなかの配置では丸）。のせるかどうかはチェックで決める
-            // 色の名前・思い出は、入力されているものだけをその下にのせる
+            // キャプションには16進数のカラーコードを必ず出し、色の名前・思い出は入力されているものだけをその下にのせる
             let cursorY = footerY - 40;
             if (state.showSwatches) {
                 const anyName = state.palette.some(c => c.name.trim());
                 const anyMemory = state.palette.some(c => c.memory.trim());
-                const nameH = anyName ? 22 : 0;
-                const labelH = (anyName || anyMemory ? 6 : 0) + nameH + (anyMemory ? 28 : 0);
+                const hexH = 16;
+                const nameH = anyName ? 18 : 0;
+                const labelH = 6 + hexH + nameH + (anyMemory ? 28 : 0);
                 const barHeight = 22;
                 const barY = footerY - 34 - labelH - barHeight;
                 ops.push(() => {
@@ -3062,12 +3063,16 @@
                             ctx.fillRect(x0, barY, itemW, barHeight);
                         }
                         const inner = itemW - 8;
+                        // カラーコード（16進数）
+                        ctx.fillStyle = text.sub;
+                        ctx.font = '400 9px "Montserrat", monospace';
+                        fillSpacedText(c.hex, cx, barY + barHeight + 15, 1, 'center');
                         const name = c.name.trim();
                         if (name) {
                             ctx.font = fs.body(n > 7 ? 11 : 12, 600);
                             ensureGlyphs(ctx.font, name);
                             ctx.fillStyle = text.main;
-                            fillSpacedText(truncateToWidth(name, inner), cx, barY + barHeight + 19, 0, 'center');
+                            fillSpacedText(truncateToWidth(name, inner), cx, barY + barHeight + 15 + hexH + 2, 0, 'center');
                         }
                         const memory = c.memory.trim();
                         if (memory) {
@@ -3075,7 +3080,7 @@
                             ensureGlyphs(ctx.font, memory);
                             ctx.fillStyle = text.sub;
                             wrapText(memory, inner, 0, 2).forEach((ln, li) => {
-                                fillSpacedText(ln, cx, barY + barHeight + 13 + nameH + li * 14, 0, 'center');
+                                fillSpacedText(ln, cx, barY + barHeight + 13 + hexH + nameH + li * 14, 0, 'center');
                             });
                         }
                     });
