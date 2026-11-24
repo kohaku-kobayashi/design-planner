@@ -162,9 +162,10 @@
                     <p class="help mt-1">ポスターの下に「作」として入ります。入れなくてもかまいません。</p>
                 </div>
                 <label class="flex items-center gap-3 text-base text-stone-200 cursor-pointer min-h-[48px]">
-                    <input type="checkbox" id="show-swatch-labels" checked>
-                    ポスターの色見本の下に、色の名前と思い出をのせる
+                    <input type="checkbox" id="show-swatches" checked>
+                    ポスターに色見本をのせる
                 </label>
+                <p class="help -mt-3">色の名前や思い出は、「色を変える」で書いたものだけが色見本の下にのります。</p>
             </div>
 
             <p class="font-mincho text-lg text-stone-200 px-1 pt-2">もっと自分らしくしたいときは、下を開いて直せます。</p>
@@ -711,7 +712,7 @@
             showGuide: false,
             title: 'わたしのギャラリー',
             message: '',
-            showSwatchLabels: true,
+            showSwatches: true,
             shapes: [],
             style: { ...DEFAULT_STYLE },
             selectedId: null
@@ -926,7 +927,7 @@
                 showGuide: state.showGuide,
                 title: state.title,
                 message: state.message,
-                showSwatchLabels: state.showSwatchLabels,
+                showSwatches: state.showSwatches,
                 style: { ...state.style },
                 shapes: state.shapes.map(s => ({ ...s }))
             };
@@ -941,7 +942,7 @@
             state.showGuide = w.showGuide;
             state.title = w.title;
             state.message = w.message || '';
-            state.showSwatchLabels = w.showSwatchLabels !== false;
+            state.showSwatches = w.showSwatches !== false;
             state.style = normalizeStyle(w.style);
             state.shapes = w.shapes.map(s => ({ ...s }));
             if (!selectedShape()) state.selectedId = null;
@@ -1033,7 +1034,8 @@
                 showGuide: !!raw.showGuide,
                 title: str(raw.title, 40),
                 message: str(raw.message, 90),
-                showSwatchLabels: raw.showSwatchLabels !== false,
+                // 色見本を出すかどうか（以前の「色の名前をのせる」設定とは別のもの）
+                showSwatches: raw.showSwatches !== false,
                 style: normalizeStyle(raw.style),
                 shapes
             };
@@ -1142,7 +1144,7 @@
                 <div class="work-item flex gap-3 sm:gap-4 items-center p-3 rounded-xl border-2 ${current ? 'border-amber-200/80 bg-stone-800/70' : 'border-stone-700 bg-stone-950/50'}" data-id="${escapeHtml(w.id)}">
                     ${w.thumb ? `<img src="${w.thumb}" alt="" class="w-16 h-[90px] sm:w-20 sm:h-[113px] object-cover rounded border border-stone-600 flex-shrink-0">` : '<div class="w-16 h-[90px] sm:w-20 sm:h-[113px] rounded border border-stone-600 bg-stone-800 flex-shrink-0"></div>'}
                     <div class="flex-1 min-w-0">
-                        <p class="font-mincho font-semibold text-lg text-stone-50 truncate">${escapeHtml(d.title || 'わたしのギャラリー')}</p>
+                        <p class="font-mincho font-semibold text-lg text-stone-50 truncate">${escapeHtml(d.title) || '<span class="text-stone-400">（タイトルなし）</span>'}</p>
                         ${names ? `<p class="text-base text-stone-200 truncate">${names}</p>` : ''}
                         <p class="text-sm text-stone-300">${formatDate(w.updatedAt)}${current ? '　<span class="text-amber-200 font-bold">いま開いている作品</span>' : ''}</p>
                         <div class="flex flex-wrap gap-2 mt-2">
@@ -1160,12 +1162,12 @@
                 if (openBtn) openBtn.addEventListener('click', () => {
                     openWork(id);
                     $('works-dialog').close();
-                    showToast(`「${(w.data && w.data.title) || 'わたしのギャラリー'}」を開きました`);
+                    showToast(w.data && w.data.title ? `「${w.data.title}」を開きました` : '作品を開きました');
                 });
                 item.querySelector('.work-dup').addEventListener('click', () => {
                     if (id === currentWorkId) saveNow();
                     const copy = JSON.parse(JSON.stringify(store.works[id].data));
-                    copy.title = `${copy.title || 'わたしのギャラリー'}（複製）`.slice(0, 40);
+                    copy.title = copy.title ? `${copy.title}（複製）`.slice(0, 40) : '';
                     const newId = createWork(copy, { open: false });
                     store.works[newId].thumb = store.works[id].thumb;
                     writeStore();
@@ -1173,7 +1175,7 @@
                     showToast('作品を複製しました');
                 });
                 item.querySelector('.work-del').addEventListener('click', () => {
-                    const title = (w.data && w.data.title) || 'わたしのギャラリー';
+                    const title = (w.data && w.data.title) || 'タイトルなしの作品';
                     if (!confirm(`「${title}」を消しますか？　消すと元にもどせません。`)) return;
                     delete store.works[id];
                     if (id === currentWorkId) {
@@ -1229,7 +1231,7 @@
                 const data = normalizeWork(entry && entry.data);
                 let id = entry && typeof entry.id === 'string' && entry.id ? entry.id : uid('w');
                 if (store.works[id]) {
-                    const overwrite = confirm(`「${data.title || 'わたしのギャラリー'}」は、この端末にもう保存されています。\n\nOK：ファイルの内容で上書きする\nキャンセル：別の作品として読み込む`);
+                    const overwrite = confirm(`「${data.title || 'タイトルなしの作品'}」は、この端末にもう保存されています。\n\nOK：ファイルの内容で上書きする\nキャンセル：別の作品として読み込む`);
                     if (!overwrite) id = uid('w');
                 }
                 const now = new Date().toISOString();
@@ -1281,7 +1283,7 @@
                         const count = importFromText(String(reader.result));
                         renderWorksList();
                         dialog.close();
-                        showToast(count > 1 ? `${count}作品を読み込みました` : `「${state.title || 'わたしのギャラリー'}」を読み込みました`);
+                        showToast(count > 1 ? `${count}作品を読み込みました` : (state.title ? `「${state.title}」を読み込みました` : '作品を読み込みました'));
                     } catch (err) {
                         showToast(err.message || '読み込めませんでした');
                     }
@@ -1546,10 +1548,11 @@
             return { palette, bgId };
         }
 
-        // 利用者が自分で入れたタイトルは残す（空・はじめのまま・テーマの例のときだけ入れかえる）
+        // 利用者が自分で入れたタイトルは残す（はじめのまま・テーマの例のときだけ入れかえる）
+        // 空にしたときも「タイトルなし」として残す
         function isAutoTitle(title) {
             const t = String(title || '').trim();
-            return !t || t === 'わたしのギャラリー' || THEMES.some(th => th.titles.includes(t));
+            return t === 'わたしのギャラリー' || THEMES.some(th => th.titles.includes(t));
         }
 
         // 構図の説明（「組み合わせの見本」に出す）。shapes はその構図が引き立つ図形
@@ -1625,7 +1628,7 @@
                 showGuide: state.showGuide,
                 title: isAutoTitle(state.title) ? pickFrom(rnd, theme.titles) : state.title,
                 message: state.message,
-                showSwatchLabels: state.showSwatchLabels,
+                showSwatches: state.showSwatches,
                 style,
                 shapes
             };
@@ -2273,7 +2276,7 @@
             $('poster-title').value = state.title;
             $('poster-message').value = state.message;
             $('message-count').textContent = [...state.message].length;
-            $('show-swatch-labels').checked = state.showSwatchLabels;
+            $('show-swatches').checked = state.showSwatches;
             $('shape-scale').value = state.scale;
             $('scale-value').textContent = `${state.scale.toFixed(1)}倍`;
             $('show-red-outline').checked = state.showGuide;
@@ -2474,8 +2477,8 @@
                 requestDraw();
             });
             message.addEventListener('change', commit);
-            $('show-swatch-labels').addEventListener('change', e => {
-                state.showSwatchLabels = e.target.checked;
+            $('show-swatches').addEventListener('change', e => {
+                state.showSwatches = e.target.checked;
                 requestDraw();
                 commit();
             });
@@ -2989,7 +2992,6 @@
             const ax = centered ? W / 2 : left;
             const align = centered ? 'center' : 'left';
             const theme = themeById(state.themeId);
-            const themeNo = String(THEMES.indexOf(theme) + 1).padStart(2, '0');
             const n = state.palette.length;
 
             // 上部の小さな英字
@@ -3032,53 +3034,56 @@
                 fillSpacedText('© 2026 HOTEL GALLERY EDITION', centered ? W / 2 : right, H - 40, 1.5, centered ? 'center' : 'right');
             });
 
-            // 色見本：横に並べた帯（まんなかの配置では丸）と、その下の色の名前・思い出
-            const anyMemory = state.palette.some(c => c.memory.trim());
-            const labelH = state.showSwatchLabels ? (anyMemory ? 48 : 20) : 14;
-            const barHeight = 22;
-            const barY = footerY - 34 - labelH - barHeight;
-            ops.push(() => {
-                const itemW = centered ? Math.min(118, maxWidth / n) : maxWidth / n;
-                const startX = centered ? W / 2 - (itemW * n) / 2 : left;
-                state.palette.forEach((c, i) => {
-                    const x0 = startX + i * itemW;
-                    const cx = x0 + itemW / 2;
-                    ctx.fillStyle = c.hex;
-                    if (centered) {
-                        ctx.beginPath();
-                        ctx.arc(cx, barY + barHeight / 2, 12, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.strokeStyle = mixHex(c.hex, text.main, 0.25);
-                        ctx.lineWidth = 0.8;
-                        ctx.stroke();
-                    } else {
-                        ctx.fillRect(x0, barY, itemW, barHeight);
-                    }
-                    const inner = itemW - 8;
-                    if (state.showSwatchLabels) {
-                        ctx.font = fs.body(n > 7 ? 11 : 12, 600);
-                        const name = c.name.trim() || c.hex;
-                        ensureGlyphs(ctx.font, name);
-                        ctx.fillStyle = text.main;
-                        fillSpacedText(truncateToWidth(name, inner), cx, barY + barHeight + 19, 0, 'center');
-                        if (c.memory.trim()) {
+            // 色見本：横に並べた帯（まんなかの配置では丸）。のせるかどうかはチェックで決める
+            // 色の名前・思い出は、入力されているものだけをその下にのせる
+            let cursorY = footerY - 40;
+            if (state.showSwatches) {
+                const anyName = state.palette.some(c => c.name.trim());
+                const anyMemory = state.palette.some(c => c.memory.trim());
+                const nameH = anyName ? 22 : 0;
+                const labelH = (anyName || anyMemory ? 6 : 0) + nameH + (anyMemory ? 28 : 0);
+                const barHeight = 22;
+                const barY = footerY - 34 - labelH - barHeight;
+                ops.push(() => {
+                    const itemW = centered ? Math.min(118, maxWidth / n) : maxWidth / n;
+                    const startX = centered ? W / 2 - (itemW * n) / 2 : left;
+                    state.palette.forEach((c, i) => {
+                        const x0 = startX + i * itemW;
+                        const cx = x0 + itemW / 2;
+                        ctx.fillStyle = c.hex;
+                        if (centered) {
+                            ctx.beginPath();
+                            ctx.arc(cx, barY + barHeight / 2, 12, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.strokeStyle = mixHex(c.hex, text.main, 0.25);
+                            ctx.lineWidth = 0.8;
+                            ctx.stroke();
+                        } else {
+                            ctx.fillRect(x0, barY, itemW, barHeight);
+                        }
+                        const inner = itemW - 8;
+                        const name = c.name.trim();
+                        if (name) {
+                            ctx.font = fs.body(n > 7 ? 11 : 12, 600);
+                            ensureGlyphs(ctx.font, name);
+                            ctx.fillStyle = text.main;
+                            fillSpacedText(truncateToWidth(name, inner), cx, barY + barHeight + 19, 0, 'center');
+                        }
+                        const memory = c.memory.trim();
+                        if (memory) {
                             ctx.font = fs.body(n > 7 ? 9 : 10, 400);
-                            ensureGlyphs(ctx.font, c.memory);
+                            ensureGlyphs(ctx.font, memory);
                             ctx.fillStyle = text.sub;
-                            wrapText(c.memory.trim(), inner, 0, 2).forEach((ln, li) => {
-                                fillSpacedText(ln, cx, barY + barHeight + 35 + li * 14, 0, 'center');
+                            wrapText(memory, inner, 0, 2).forEach((ln, li) => {
+                                fillSpacedText(ln, cx, barY + barHeight + 13 + nameH + li * 14, 0, 'center');
                             });
                         }
-                    } else {
-                        ctx.fillStyle = text.sub;
-                        ctx.font = '400 9px "Montserrat", monospace';
-                        fillSpacedText(c.hex, cx, barY + barHeight + 15, 1, 'center');
-                    }
+                    });
                 });
-            });
+                cursorY = barY - 30;
+            }
 
             // ひとこと（3行まで。色の面のときは2行まで）
-            let cursorY = barY - 30;
             const message = state.message.trim();
             if (message) {
                 ctx.font = fs.body(16, 400);
@@ -3092,19 +3097,12 @@
                     ctx.fillStyle = text.main;
                     lines.forEach((ln, i) => fillSpacedText(ln, ax, top + i * lh, 0.5, align));
                 });
-                cursorY = top - lh - 8;
+                cursorY = top - lh - 18;
             }
 
-            // サブタイトル（たたき台の配色名と色の数）
-            const subY = cursorY;
-            ops.push(() => {
-                ctx.fillStyle = text.sub;
-                ctx.font = '400 12px "Montserrat", sans-serif';
-                fillSpacedText(`COLLECTION NO. ${themeNo}  /  ${n} COLORS`, ax, subY, 1.5, align);
-            });
-            cursorY -= 26;
-
-            const title = state.title.trim() || 'わたしのギャラリー';
+            // タイトル（空のときは何も描かない）
+            const title = state.title.trim();
+            if (!title) return { top: cursorY, ops };
             if (st.layout === 'vertical') {
                 // 縦書きのタイトル：右上から、ひとことの上までの高さに入れる
                 const yTop = 128;
