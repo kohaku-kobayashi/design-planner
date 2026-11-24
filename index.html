@@ -165,7 +165,7 @@
                     <input type="checkbox" id="show-swatches" checked>
                     ポスターに色見本をのせる
                 </label>
-                <p class="help -mt-3">色見本の下には色のコード（#165E83 のような16進数）が入ります。色の名前や思い出は、「色を変える」で書いたものだけがのります。</p>
+                <p class="help -mt-3">色見本の下には、色のコード（#165E83 のような16進数）が入ります。</p>
             </div>
 
             <p class="font-mincho text-lg text-stone-200 px-1 pt-2">もっと自分らしくしたいときは、下を開いて直せます。</p>
@@ -190,7 +190,7 @@
                     <p class="label">このテーマのほかの配色</p>
                     <div id="preset-list" class="space-y-2.5"></div>
                 </div>
-                <p class="help">色の四角をタップすると色を変えられます。思い出の色や好きな色を足すこともできます。色の名前や思い出も自由に書けます。</p>
+                <p class="help">色の四角をタップすると色を変えられます。思い出の色や好きな色を足すこともできます。色の名前は、見分けやすいように自由につけられます（ポスターにはのりません）。</p>
                 <div id="palette-list" class="space-y-3"></div>
                 <button type="button" id="btn-add-color" class="btn w-full"><i class="fa-solid fa-plus"></i>色を足す</button>
 
@@ -1756,7 +1756,7 @@
             `).join('');
             list.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.preset, 10);
-                if (paletteIsEdited() && !confirm('いまの色（書いた名前や思い出も）を、この配色に置きかえます。よろしいですか？')) return;
+                if (paletteIsEdited() && !confirm('いまの色（つけた名前も）を、この配色に置きかえます。よろしいですか？')) return;
                 const { palette, bgId } = paletteFromTheme(theme, idx);
                 state.paletteIndex = idx;
                 state.palette = palette;
@@ -1818,13 +1818,13 @@
                                 <input type="text" class="field py-2 color-name" value="${escapeHtml(c.name)}" maxlength="24" placeholder="色の名前（例：祖母の家の縁側の色）" aria-label="${i + 1}番目の色の名前">
                                 <button type="button" class="btn btn-sm btn-ghost btn-danger delete-color flex-shrink-0" title="この色を消す" aria-label="${i + 1}番目の色を消す" ${state.palette.length <= MIN_COLORS ? 'disabled' : ''}><i class="fa-solid fa-trash-can"></i></button>
                             </div>
-                            <input type="text" class="field py-2 color-memory" value="${escapeHtml(c.memory)}" maxlength="40" placeholder="思い出・この色をえらんだわけ" aria-label="${i + 1}番目の色の思い出">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-mono text-sm text-stone-300">${c.hex}</span>
+                                <label class="flex items-center gap-2 text-base text-stone-200 cursor-pointer min-h-[44px]">
+                                    <input type="radio" name="bg-color" class="bg-radio" ${bg.id === c.id ? 'checked' : ''}>背景にする
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                        <label class="ml-auto flex items-center gap-2 text-base text-stone-200 cursor-pointer min-h-[44px]">
-                            <input type="radio" name="bg-color" class="bg-radio" ${bg.id === c.id ? 'checked' : ''}>背景にする
-                        </label>
                     </div>
                 </div>
             `).join('');
@@ -1835,15 +1835,13 @@
                 const colorInput = row.querySelector('.color-input');
                 colorInput.addEventListener('input', e => {
                     color.hex = normalizeHex(e.target.value);
+                    row.querySelector('.font-mono').textContent = color.hex;
                     requestDraw();
                 });
                 colorInput.addEventListener('change', () => { renderShapeList(); commit(); });
                 const nameInput = row.querySelector('.color-name');
-                nameInput.addEventListener('input', e => { color.name = e.target.value; requestDraw(); });
+                nameInput.addEventListener('input', e => { color.name = e.target.value; });
                 nameInput.addEventListener('change', commit);
-                const memInput = row.querySelector('.color-memory');
-                memInput.addEventListener('input', e => { color.memory = e.target.value; requestDraw(); });
-                memInput.addEventListener('change', commit);
                 row.querySelector('.bg-radio').addEventListener('change', () => {
                     state.bgId = id;
                     requestDraw();
@@ -2422,7 +2420,7 @@
             ['pointerup', 'pointercancel'].forEach(t => c.addEventListener(t, () => { picking = false; }));
             $('btn-add-photo-color').addEventListener('click', () => {
                 if (!photo.picked) return;
-                if (addColor({ hex: photo.picked, name: '', memory: '写真からひろった色' })) {
+                if (addColor({ hex: photo.picked, name: '写真からひろった色' })) {
                     showToast('写真の色をパレットに足しました。名前をつけてみましょう');
                 }
             });
@@ -3035,14 +3033,10 @@
             });
 
             // 色見本：横に並べた帯（まんなかの配置では丸）。のせるかどうかはチェックで決める
-            // キャプションには16進数のカラーコードを必ず出し、色の名前・思い出は入力されているものだけをその下にのせる
+            // キャプションは16進数のカラーコードだけ
             let cursorY = footerY - 40;
             if (state.showSwatches) {
-                const anyName = state.palette.some(c => c.name.trim());
-                const anyMemory = state.palette.some(c => c.memory.trim());
-                const hexH = 16;
-                const nameH = anyName ? 18 : 0;
-                const labelH = 6 + hexH + nameH + (anyMemory ? 28 : 0);
+                const labelH = 22;
                 const barHeight = 22;
                 const barY = footerY - 34 - labelH - barHeight;
                 ops.push(() => {
@@ -3062,27 +3056,10 @@
                         } else {
                             ctx.fillRect(x0, barY, itemW, barHeight);
                         }
-                        const inner = itemW - 8;
                         // カラーコード（16進数）
                         ctx.fillStyle = text.sub;
                         ctx.font = '400 9px "Montserrat", monospace';
                         fillSpacedText(c.hex, cx, barY + barHeight + 15, 1, 'center');
-                        const name = c.name.trim();
-                        if (name) {
-                            ctx.font = fs.body(n > 7 ? 11 : 12, 600);
-                            ensureGlyphs(ctx.font, name);
-                            ctx.fillStyle = text.main;
-                            fillSpacedText(truncateToWidth(name, inner), cx, barY + barHeight + 15 + hexH + 2, 0, 'center');
-                        }
-                        const memory = c.memory.trim();
-                        if (memory) {
-                            ctx.font = fs.body(n > 7 ? 9 : 10, 400);
-                            ensureGlyphs(ctx.font, memory);
-                            ctx.fillStyle = text.sub;
-                            wrapText(memory, inner, 0, 2).forEach((ln, li) => {
-                                fillSpacedText(ln, cx, barY + barHeight + 13 + hexH + nameH + li * 14, 0, 'center');
-                            });
-                        }
                     });
                 });
                 cursorY = barY - 30;
