@@ -58,6 +58,8 @@
         input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,.35); border-radius: 12px; }
         input[type="color"]::-moz-color-swatch { border: 2px solid rgba(255,255,255,.35); border-radius: 12px; }
         #posterCanvas { touch-action: none; }
+        #posterCanvas:focus { outline: none; }
+        #posterCanvas:focus-visible { outline: 3px solid #fde68a; outline-offset: 4px; }
 
         /* 印刷：ポスターだけを A4 に大きく印刷する */
         #print-area { display: none; }
@@ -85,6 +87,9 @@
             .field { @apply w-full px-4 py-3 bg-stone-950 border border-stone-600 rounded-xl text-base text-stone-50 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-200/70 focus:border-stone-400; }
             .label { @apply block text-base font-bold text-stone-100 mb-1.5; }
             .subbox { @apply bg-stone-950/60 p-4 rounded-xl border border-stone-700; }
+            .tool-btn { @apply flex flex-col items-center justify-center gap-1 min-w-[60px] min-h-[60px] px-2 rounded-xl text-stone-50 text-sm leading-none hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200; }
+            .tool-btn i { @apply text-lg; }
+            .tool-del { @apply text-rose-200 hover:bg-rose-950; }
         }
     </style>
 </head>
@@ -254,12 +259,22 @@
                 <!-- 額縁のような背景 -->
                 <div class="w-full flex justify-center items-center bg-[#0a0a0a] p-4 sm:p-6 rounded-2xl border border-stone-800 overflow-hidden shadow-2xl relative">
                     <div class="absolute inset-2 border border-stone-800/60 pointer-events-none rounded-xl"></div>
-                    <canvas id="posterCanvas" class="max-w-full h-auto rounded shadow-2xl" width="1600" height="2262" aria-label="ポスターのプレビュー。図形をドラッグして動かせます"></canvas>
+                    <div id="canvas-stage" class="relative w-full">
+                        <canvas id="posterCanvas" class="block w-full h-auto rounded shadow-2xl" width="1600" height="2262" aria-label="ポスターのプレビュー。図形を押すと、動かす・回す・消すことができます"></canvas>
+                        <!-- 選んだ図形のそばに出るボタン（画面だけ。保存・印刷には出ない） -->
+                        <div id="shape-toolbar" class="absolute hidden z-10 gap-1 p-1.5 rounded-2xl bg-stone-900/95 border border-stone-500 shadow-2xl" role="toolbar" aria-label="選んだ図形の操作">
+                            <button type="button" data-act="rotl" class="tool-btn" aria-label="左に回す"><i class="fa-solid fa-rotate-left"></i><span>左に回す</span></button>
+                            <button type="button" data-act="rotr" class="tool-btn" aria-label="右に回す"><i class="fa-solid fa-rotate-right"></i><span>右に回す</span></button>
+                            <button type="button" data-act="front" class="tool-btn" aria-label="いちばん前に出す"><i class="fa-solid fa-layer-group"></i><span>前に出す</span></button>
+                            <button type="button" data-act="dup" class="tool-btn" aria-label="おなじ図形をもうひとつ"><i class="fa-regular fa-clone"></i><span>複製</span></button>
+                            <button type="button" data-act="del" class="tool-btn tool-del" aria-label="この図形を消す"><i class="fa-solid fa-trash-can"></i><span>消す</span></button>
+                        </div>
+                    </div>
                 </div>
 
                 <p id="canvas-help" class="help text-center">
-                    <i class="fa-solid fa-hand-pointer text-amber-200"></i> 図形を押したまま動かすと位置が変わります。<br class="hidden sm:inline">
-                    右下の丸いつまみを引くと大きさが変わります。
+                    <i class="fa-solid fa-hand-pointer text-amber-200"></i> 図形を押すと、回す・消すボタンが出ます。押したまま動かすと位置が変わります。<br class="hidden sm:inline">
+                    上の丸いつまみで回し、右下の丸いつまみで大きさを変えられます。
                 </p>
             </div>
         </section>
@@ -297,6 +312,7 @@
     <div id="toast" role="status" aria-live="polite" class="fixed bottom-6 right-6 left-6 sm:left-auto bg-stone-800 border border-stone-500 text-stone-50 text-base px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50">
         <i class="fa-solid fa-check text-amber-200"></i>
         <span id="toast-message">カラーコードをコピーしました</span>
+        <button type="button" id="toast-action" class="hidden btn btn-sm btn-primary ml-2 whitespace-nowrap"></button>
     </div>
 
     <!-- JavaScript ロジック -->
@@ -873,6 +889,16 @@
                 y: Math.min(H - m, Math.max(m, g.cy + d))
             };
         }
+        // 回すつまみ（図形の真上）
+        function rotateHandlePosition(shape) {
+            const g = shapeGeometry(shape);
+            const d = g.r * shapeTypeInfo(shape.type).extent + 34 * cssToDesign();
+            const m = 18 * cssToDesign();
+            return {
+                x: Math.min(W - m, Math.max(m, g.cx)),
+                y: Math.min(H - m, Math.max(m, g.cy - d))
+            };
+        }
         function sizeFromKnob(shape, px, py) {
             const g = shapeGeometry(shape);
             const per = getLayout().baseSize * shapeTypeInfo(shape.type).extent * 0.75 * Math.SQRT2;
@@ -1319,6 +1345,7 @@
             bindWorksEvents();
             bindPhotoTool();
             bindPrint();
+            bindShapeToolbar();
             renderAll();
             await waitForFonts();
             drawPoster();
@@ -1963,19 +1990,57 @@
                 card.querySelectorAll('.shape-order').forEach(btn => btn.addEventListener('click', () => {
                     moveShapeOrder(id, btn.dataset.where); renderShapeList(); requestDraw(); commit();
                 }));
-                card.querySelector('.shape-dup').addEventListener('click', () => {
-                    const copy = { ...s, id: uid('s'), x: s.x + 30, y: s.y + 30 };
-                    state.shapes.splice(state.shapes.indexOf(s) + 1, 0, copy);
-                    state.selectedId = copy.id;
-                    renderShapeList(); requestDraw(); commit();
-                });
-                card.querySelector('.shape-del').addEventListener('click', () => {
-                    state.shapes = state.shapes.filter(x => x.id !== id);
-                    state.selectedId = null;
-                    renderShapeList(); requestDraw(); commit();
-                    showToast('図形を消しました（「ひとつ戻す」で元にもどせます）');
-                });
+                card.querySelector('.shape-dup').addEventListener('click', () => duplicateShape(id));
+                card.querySelector('.shape-del').addEventListener('click', () => deleteShape(id));
             });
+        }
+
+        // ===== 図形の操作（一覧・ポスター上のボタン・キーボードで共通） =====
+        function normalizeAngle(deg) {
+            let r = Math.round(deg) % 360;
+            if (r > 180) r -= 360;
+            if (r < -180) r += 360;
+            return r;
+        }
+        function rotateShape(id, step) {
+            const s = state.shapes.find(x => x.id === id);
+            if (!s) return;
+            // 15度ずつ回す。半端な角度のときは、回す向きにある次のきりのよい角度にそろえる
+            const cur = s.rotation || 0;
+            const next = cur % 15 === 0 ? cur + step : (step > 0 ? Math.ceil(cur / 15) * 15 : Math.floor(cur / 15) * 15);
+            s.rotation = normalizeAngle(next);
+            renderShapeList();
+            requestDraw();
+            commit();
+        }
+        function duplicateShape(id) {
+            const s = state.shapes.find(x => x.id === id);
+            if (!s) return;
+            const copy = { ...s, id: uid('s'), x: s.x + 30, y: s.y + 30 };
+            clampShapePosition(copy);
+            state.shapes.splice(state.shapes.indexOf(s) + 1, 0, copy);
+            state.selectedId = copy.id;
+            renderShapeList();
+            requestDraw();
+            commit();
+            showToast('おなじ図形をもうひとつ置きました');
+        }
+        function deleteShape(id) {
+            const s = state.shapes.find(x => x.id === id);
+            if (!s) return;
+            state.shapes = state.shapes.filter(x => x.id !== id);
+            state.selectedId = null;
+            renderShapeList();
+            requestDraw();
+            commit();
+            showToast(`${shapeTypeInfo(s.type).label}を消しました`, { label: 'もとにもどす', run: undo });
+        }
+        function bringToFront(id) {
+            moveShapeOrder(id, 'front');
+            renderShapeList();
+            requestDraw();
+            commit();
+            showToast('いちばん前に出しました');
         }
 
         // ===== ポスター上の操作（マウス・タッチ共通の Pointer Events） =====
@@ -1997,8 +2062,12 @@
                 const sel = selectedShape();
                 const knobHit = 30 * cssToDesign();
                 if (sel) {
+                    const rh = rotateHandlePosition(sel);
                     const k = knobPosition(sel);
-                    if (Math.hypot(p.x - k.x, p.y - k.y) <= knobHit) {
+                    if (Math.hypot(p.x - rh.x, p.y - rh.y) <= knobHit) {
+                        const g = shapeGeometry(sel);
+                        drag = { mode: 'rotate', id: sel.id, moved: false, startAngle: Math.atan2(p.y - g.cy, p.x - g.cx), startRot: sel.rotation || 0 };
+                    } else if (Math.hypot(p.x - k.x, p.y - k.y) <= knobHit) {
                         drag = { mode: 'resize', id: sel.id, moved: false };
                     }
                 }
@@ -2025,7 +2094,9 @@
                     let cursor = 'default';
                     if (sel) {
                         const k = knobPosition(sel);
-                        if (Math.hypot(p.x - k.x, p.y - k.y) <= 30 * cssToDesign()) cursor = 'nwse-resize';
+                        const rh = rotateHandlePosition(sel);
+                        if (Math.hypot(p.x - rh.x, p.y - rh.y) <= 30 * cssToDesign()) cursor = 'grab';
+                        else if (Math.hypot(p.x - k.x, p.y - k.y) <= 30 * cssToDesign()) cursor = 'nwse-resize';
                     }
                     if (cursor === 'default' && hitTestShape(p.x, p.y)) cursor = 'grab';
                     canvas.style.cursor = cursor;
@@ -2039,6 +2110,15 @@
                     s.x = (p.x - drag.dx - centerX) / state.scale;
                     s.y = (p.y - drag.dy - centerY) / state.scale;
                     clampShapePosition(s);
+                    canvas.style.cursor = 'grabbing';
+                } else if (drag.mode === 'rotate') {
+                    const g = shapeGeometry(s);
+                    const delta = (Math.atan2(p.y - g.cy, p.x - g.cx) - drag.startAngle) * 180 / Math.PI;
+                    let r = drag.startRot + delta;
+                    // 15度の倍数の近くでは、ぴたりと止まるようにする
+                    const snap = Math.round(r / 15) * 15;
+                    if (Math.abs(r - snap) < 4) r = snap;
+                    s.rotation = normalizeAngle(r);
                     canvas.style.cursor = 'grabbing';
                 } else {
                     s.size = sizeFromKnob(s, p.x, p.y);
@@ -2054,6 +2134,7 @@
                     renderShapeList();
                     commit();
                 }
+                requestDraw(); // 動かしている間は隠していたボタンを、もう一度出す
             };
             canvas.addEventListener('pointerup', end);
             canvas.addEventListener('pointercancel', end);
@@ -2072,6 +2153,8 @@
                 else if (e.key === 'ArrowDown') s.y += step;
                 else if (e.key === '+' || e.key === '=') s.size = Math.min(2.6, s.size + 0.05);
                 else if (e.key === '-') s.size = Math.max(0.15, s.size - 0.05);
+                else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteShape(s.id); return; }
+                else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); rotateShape(s.id, e.shiftKey ? -15 : 15); return; }
                 else handled = false;
                 if (handled) {
                     e.preventDefault();
@@ -2079,6 +2162,48 @@
                     requestDraw();
                     commit();
                 }
+            });
+        }
+
+        // ===== 選んだ図形のそばに出すボタン =====
+        function positionShapeToolbar() {
+            const tb = $('shape-toolbar');
+            const sel = selectedShape();
+            if (!sel || drag) {
+                tb.classList.add('hidden');
+                tb.classList.remove('flex');
+                return;
+            }
+            tb.classList.remove('hidden');
+            tb.classList.add('flex');
+            const s = canvas.clientWidth / W; // 設計座標 → 画面上の大きさ
+            const stageW = canvas.clientWidth, stageH = canvas.clientHeight;
+            const w = tb.offsetWidth, h = tb.offsetHeight;
+            const g = shapeGeometry(sel);
+            const R = g.r * shapeTypeInfo(sel.type).extent;
+            const gap = 14;
+            // まず図形の下に。入らなければ回すつまみの上に。それも入らなければ下の端に
+            let y = (g.cy + R) * s + gap;
+            if (y + h > stageH - 4) {
+                const rh = rotateHandlePosition(sel);
+                y = rh.y * s - 24 - h;
+                if (y < 4) y = stageH - h - 4;
+            }
+            const x = Math.min(stageW - w - 4, Math.max(4, g.cx * s - w / 2));
+            tb.style.left = `${Math.round(x)}px`;
+            tb.style.top = `${Math.round(Math.max(4, y))}px`;
+        }
+        function bindShapeToolbar() {
+            $('shape-toolbar').addEventListener('click', e => {
+                const btn = e.target.closest('.tool-btn');
+                const sel = selectedShape();
+                if (!btn || !sel) return;
+                const act = btn.dataset.act;
+                if (act === 'rotl') rotateShape(sel.id, -15);
+                else if (act === 'rotr') rotateShape(sel.id, 15);
+                else if (act === 'front') bringToFront(sel.id);
+                else if (act === 'dup') duplicateShape(sel.id);
+                else if (act === 'del') deleteShape(sel.id);
             });
         }
 
@@ -2094,17 +2219,27 @@
         }
 
         // ===== お知らせ =====
+        // action を渡すと、お知らせの中にボタン（例：「もとにもどす」）を出す
         let toastTimeout;
-        function showToast(msg) {
+        let toastActionRun = null;
+        function hideToast() {
             const toast = $('toast');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toastActionRun = null;
+        }
+        function showToast(msg, action = null) {
+            const toast = $('toast');
+            const btn = $('toast-action');
             $('toast-message').textContent = msg;
+            toastActionRun = action ? action.run : null;
+            btn.textContent = action ? action.label : '';
+            btn.classList.toggle('hidden', !action);
             toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-            }, 2800);
+            // ボタンがあるときは、押す時間をとって長めに出しておく
+            toastTimeout = setTimeout(hideToast, action ? 6000 : 2800);
         }
 
         // ===== 保存（画像） =====
@@ -2290,6 +2425,7 @@
 
             $('btn-undo').addEventListener('click', undo);
             $('btn-more-proposals').addEventListener('click', makeProposals);
+            $('toast-action').addEventListener('click', () => { const run = toastActionRun; hideToast(); if (run) run(); });
             $('btn-download').addEventListener('click', downloadPng);
             bindCanvasPointer();
         }
@@ -2346,6 +2482,7 @@
             // 選択中の図形の枠とつまみ（画面だけ。保存・印刷には出さない）
             const sel = selectedShape();
             if (!exporting && sel) drawSelection(sel, k);
+            if (!exporting) positionShapeToolbar();
         }
 
         // ----- 背景 -----
@@ -2527,9 +2664,60 @@
                 ctx.setLineDash([8 * px, 5 * px]);
                 ctx.stroke(shapePath(sel.type, g.r + 10 * px));
                 ctx.restore();
+            } else {
+                // どの図形を選んでいるか分かるよう、白と黒の細い点線で輪郭をなぞる
+                ctx.save();
+                ctx.translate(g.cx, g.cy);
+                ctx.rotate(g.rot);
+                const outline = shapePath(sel.type, g.r);
+                ctx.lineWidth = 3 * px;
+                ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+                ctx.stroke(outline);
+                ctx.lineWidth = 1.6 * px;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.setLineDash([6 * px, 4 * px]);
+                ctx.stroke(outline);
+                ctx.restore();
             }
-            const kp = knobPosition(sel);
             const kr = 15 * px;
+
+            // 回すつまみ：図形の真上の丸と、ぐるりと回る矢印
+            const rh = rotateHandlePosition(sel);
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+            ctx.lineWidth = 2 * px;
+            ctx.setLineDash([4 * px, 3 * px]);
+            ctx.beginPath();
+            ctx.moveTo(rh.x, rh.y + kr);
+            ctx.lineTo(rh.x, Math.min(g.cy, rh.y + kr + 22 * px));
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowBlur = 6 * k;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#1C1917';
+            ctx.lineWidth = 2.5 * px;
+            ctx.beginPath();
+            ctx.arc(rh.x, rh.y, kr, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+            ctx.stroke();
+            const ar = kr * 0.5;
+            ctx.lineWidth = 2 * px;
+            ctx.beginPath();
+            ctx.arc(rh.x, rh.y, ar, -Math.PI * 0.85, Math.PI * 0.55);
+            ctx.stroke();
+            // 矢印の先
+            const ea = Math.PI * 0.55;
+            const ex = rh.x + ar * Math.cos(ea), ey = rh.y + ar * Math.sin(ea);
+            ctx.beginPath();
+            ctx.moveTo(ex - 4 * px, ey + 1 * px);
+            ctx.lineTo(ex, ey);
+            ctx.lineTo(ex + 1.5 * px, ey - 4.5 * px);
+            ctx.stroke();
+            ctx.restore();
+
+            const kp = knobPosition(sel);
             ctx.save();
             ctx.shadowColor = 'rgba(0,0,0,0.35)';
             ctx.shadowBlur = 6 * k;
