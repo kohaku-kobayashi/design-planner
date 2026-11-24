@@ -135,9 +135,17 @@
                 <button type="button" id="btn-more-proposals" class="btn w-full"><i class="fa-solid fa-wand-magic-sparkles"></i>ほかの案を見る</button>
             </div>
 
-            <!-- 3. ことば -->
+            <!-- 3. 組み合わせの見本 -->
+            <div class="panel" id="guide-panel">
+                <h2 class="step-title"><span class="step-no">03</span>いろいろな組み合わせ<span class="step-en">Compositions</span></h2>
+                <p class="help">形の組み合わせ方は、ほかにもこんなものがあります。見本を押すと、その組み合わせのポスターになります。</p>
+                <div id="guide-list" class="grid grid-cols-1 gap-2"></div>
+                <p class="help subbox"><i class="fa-solid fa-lightbulb text-amber-200 mr-1"></i>同じ組み合わせでも、下の「雰囲気を変える」で<strong class="text-stone-50">線だけ</strong>や<strong class="text-stone-50">切り絵</strong>にすると、印象ががらりと変わります。「形を変える」では、図形を1つずつ足したり消したりもできます。</p>
+            </div>
+
+            <!-- 4. ことば -->
             <div class="panel">
-                <h2 class="step-title"><span class="step-no">03</span>ことばを入れる<span class="step-en">Words</span></h2>
+                <h2 class="step-title"><span class="step-no">04</span>ことばを入れる<span class="step-en">Words</span></h2>
                 <div>
                     <label for="poster-title" class="label">作品のタイトル</label>
                     <input type="text" id="poster-title" class="field font-mincho text-lg" maxlength="40" placeholder="例：縁側の午後">
@@ -164,7 +172,7 @@
             <!-- 4. 雰囲気 -->
             <details class="panel group">
                 <summary class="step-title cursor-pointer list-none min-h-[48px] items-center">
-                    <span class="step-no">04</span>雰囲気を変える
+                    <span class="step-no">05</span>雰囲気を変える
                     <i class="fa-solid fa-chevron-down ml-auto text-stone-300 text-base transition-transform group-open:rotate-180"></i>
                 </summary>
                 <p class="help">文字の置き方や背景、図形の描き方を変えると、同じ色でもがらりと雰囲気が変わります。</p>
@@ -174,7 +182,7 @@
             <!-- 5. 色 -->
             <details class="panel group">
                 <summary class="step-title cursor-pointer list-none min-h-[48px] items-center">
-                    <span class="step-no">05</span>色を変える
+                    <span class="step-no">06</span>色を変える
                     <i class="fa-solid fa-chevron-down ml-auto text-stone-300 text-base transition-transform group-open:rotate-180"></i>
                 </summary>
                 <div>
@@ -211,7 +219,7 @@
             <!-- 6. 形 -->
             <details class="panel group">
                 <summary class="step-title cursor-pointer list-none min-h-[48px] items-center">
-                    <span class="step-no">06</span>形を変える
+                    <span class="step-no">07</span>形を変える
                     <i class="fa-solid fa-chevron-down ml-auto text-stone-300 text-base transition-transform group-open:rotate-180"></i>
                 </summary>
                 <p class="help">図形を足して、ポスターの上で指やマウスで動かしましょう。選んだ図形の右下に出る丸いつまみを引くと、大きさが変わります。</p>
@@ -1544,15 +1552,26 @@
             return !t || t === 'わたしのギャラリー' || THEMES.some(th => th.titles.includes(t));
         }
 
-        // テーマから案をひとつつくる
-        function generateWork(theme, rnd, avoid = []) {
+        // 構図の説明（「組み合わせの見本」に出す）。shapes はその構図が引き立つ図形
+        const COMPOSITION_INFO = [
+            { id: 'cluster',   name: '重ねる',   desc: '大小の形を中央に重ねます。ホテルに飾るような抽象画に。', shapes: ['circle', 'double-circle', 'arch', 'rect', 'triangle', 'half'] },
+            { id: 'stack',     name: '積む',     desc: '形を下から上へ積み上げます。塔や建物のように。', shapes: ['arch', 'circle', 'half', 'rect', 'triangle', 'quarter'] },
+            { id: 'orbit',     name: 'めぐる',   desc: '大きな輪のまわりを小さな形がめぐります。月や星、水の波紋のように。', shapes: ['ring', 'double-circle', 'circle', 'star', 'line'] },
+            { id: 'scatter',   name: '散らす',   desc: '小さな形をちりばめます。花びらや雪、星空のように。', shapes: ['circle', 'leaf', 'star', 'triangle', 'quarter'] },
+            { id: 'grid',      name: 'ならべる', desc: 'ます目に形をならべます。タイルや模様のように。', shapes: ['rect', 'circle', 'half', 'quarter', 'triangle'] },
+            { id: 'landscape', name: '風景',     desc: '太陽と、山なみや海。ふるさとの景色のように。', shapes: ['circle', 'half', 'band', 'line', 'triangle'] },
+            { id: 'diagonal',  name: 'ななめ',   desc: 'ななめの帯と形。着物の柄やモダンアートのように。', shapes: ['band', 'line', 'circle', 'quarter', 'half'] }
+        ];
+
+        // テーマから案をひとつつくる（force.composition を渡すと、その構図でつくる）
+        function generateWork(theme, rnd, avoid = [], force = {}) {
             let choice = null;
             // ほかの案と配置・構図・配色がなるべく重ならないよう、数回ためして選ぶ
             for (let attempt = 0; attempt < 8; attempt++) {
                 const c = {
                     paletteIndex: Math.floor(rnd() * theme.palettes.length),
                     layout: pickFrom(rnd, theme.layouts),
-                    composition: pickFrom(rnd, theme.compositions)
+                    composition: force.composition || pickFrom(rnd, theme.compositions)
                 };
                 const sig = `${c.layout}/${c.composition}/${c.paletteIndex}`;
                 choice = c;
@@ -1566,7 +1585,14 @@
                 font: pickFrom(rnd, theme.fonts),
                 shapeStyle: pickFrom(rnd, theme.shapeStyles)
             });
-            const raw = COMPOSERS[choice.composition](rnd, ART_BOX[style.layout], theme.shapes);
+            // 構図を指定したときは、テーマの図形のうちその構図に合うものを使う（少なければ構図向きの図形）
+            let types = theme.shapes;
+            if (force.composition) {
+                const info = COMPOSITION_INFO.find(c => c.id === force.composition);
+                const both = info ? info.shapes.filter(t => theme.shapes.includes(t)) : [];
+                types = both.length >= 2 ? both : (info ? info.shapes : theme.shapes);
+            }
+            const raw = COMPOSERS[choice.composition](rnd, ART_BOX[style.layout], types);
 
             // 色：背景の色は使わない。色の面のときは面の色も使わない。となりあう図形は別の色に
             const bg = palette.find(c => c.id === bgId);
@@ -1648,8 +1674,24 @@
                 const thumb = withWork(work, () => renderPosterCanvas(0.34).toDataURL('image/jpeg', 0.85));
                 return { work, thumb };
             });
-            requestDraw(); // 見本を描いたあと、画面のポスターを描き直す
             renderProposals();
+            makeCompositionGuide(rnd);
+            requestDraw(); // 見本を描いたあと、画面のポスターを描き直す
+        }
+
+        // 案（または見本）をポスターに当てはめる。お名前・ひとこと・自分で入れたタイトルは残す
+        function applyGeneratedWork(source, message) {
+            const work = JSON.parse(JSON.stringify(source));
+            work.author = state.author;
+            work.message = state.message;
+            if (!isAutoTitle(state.title)) work.title = state.title;
+            applyWork(work);
+            state.selectedId = null;
+            renderAll();
+            commit();
+            showToast(message, { label: 'もとにもどす', run: undo });
+            // 画面がせまくポスターが上にあるときは、ポスターの位置まで戻る
+            if (window.matchMedia('(max-width: 1023px)').matches) canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function renderProposals() {
@@ -1661,19 +1703,38 @@
                     <span class="text-base font-bold text-stone-100 py-1">案${i + 1}</span>
                 </button>`).join('');
             $('proposal-list').querySelectorAll('.proposal-btn').forEach(btn => btn.addEventListener('click', () => {
-                const p = proposals[parseInt(btn.dataset.i, 10)];
-                // 選ぶたびに新しいIDの図形・色にして、同じ案を何度選んでも同じ結果になるようにする
-                const work = JSON.parse(JSON.stringify(p.work));
-                work.author = state.author;
-                work.message = state.message;
-                if (!isAutoTitle(state.title)) work.title = state.title;
-                applyWork(work);
-                state.selectedId = null;
-                renderAll();
-                commit();
-                showToast('この案にしました。気になるところは下で直せます（「ひとつ戻す」で元にもどせます）');
-                // 画面がせまくポスターが上にあるときは、ポスターの位置まで戻る
-                if (window.matchMedia('(max-width: 1023px)').matches) canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                applyGeneratedWork(proposals[parseInt(btn.dataset.i, 10)].work, 'この案にしました。気になるところは下で直せます');
+            }));
+        }
+
+        // ===== 03 組み合わせの見本 =====
+        // 構図ごとに、いまのテーマの色で見本をつくって並べる
+        let guideItems = [];
+        function makeCompositionGuide(rnd = seededRandom(Math.floor(Math.random() * 2147483647))) {
+            const theme = themeById(state.themeId);
+            guideItems = COMPOSITION_INFO.map(info => {
+                const work = generateWork(theme, rnd, [], { composition: info.id });
+                const thumb = withWork(work, () => renderPosterCanvas(0.3).toDataURL('image/jpeg', 0.85));
+                return { info, work, thumb };
+            });
+            renderCompositionGuide();
+        }
+        function renderCompositionGuide() {
+            const list = $('guide-list');
+            list.innerHTML = guideItems.map((g, i) => `
+                <button type="button" data-i="${i}" class="guide-btn text-left flex gap-3 items-start rounded-xl border-2 border-stone-700 hover:border-amber-200 bg-stone-950/50 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200" aria-label="「${g.info.name}」の組み合わせで作る">
+                    <img src="${g.thumb}" alt="" class="w-20 sm:w-24 h-auto rounded flex-shrink-0">
+                    <span class="flex-1 min-w-0 py-1">
+                        <span class="block font-mincho font-semibold text-lg text-stone-50">${escapeHtml(g.info.name)}</span>
+                        <span class="block text-base text-stone-200 leading-snug mt-1">${escapeHtml(g.info.desc)}</span>
+                        <span class="flex flex-wrap items-center gap-1 mt-2" aria-label="使う形">
+                            ${g.info.shapes.slice(0, 5).map(t => `<span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-stone-200/90" title="${shapeTypeInfo(t).label}">${shapeIconSvg(t, '#292524', 20)}</span>`).join('')}
+                        </span>
+                    </span>
+                </button>`).join('');
+            list.querySelectorAll('.guide-btn').forEach(btn => btn.addEventListener('click', () => {
+                const g = guideItems[parseInt(btn.dataset.i, 10)];
+                applyGeneratedWork(g.work, `「${g.info.name}」の組み合わせにしました`);
             }));
         }
 
